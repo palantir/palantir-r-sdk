@@ -1,0 +1,30 @@
+Type: Package
+Package: palantir
+Title: Interface to Palantir
+Version: 0.0.1
+Authors@R:
+    c(person(given = "Alexandre",
+             family = "Guinaudeau",
+             role = c("aut", "cre"),
+             email = "aguinaudeau@palantir.com"),
+      person(family = "Palantir Technologies",
+             role = c("aut", "cph")))
+Maintainer: Alexandre Guinaudeau <aguinaudeau@palantir.com>
+Description: Interface to Palantir.
+Encoding: UTF-8
+License: Apache License 2.0 | file LICENSE
+RoxygenNote: 7.1.1
+Depends: 
+    R (>= 3.5.0)
+Imports:
+    reticulate (>= 1.12)
+Suggests:
+    arrow (>= 0.14.0),
+    dplyr,
+    lintr,
+    testthat (>= 3.0.0),
+    rstudioapi,
+    withr
+Collate: 
+    'datasets.R'
+    'install.R'
