@@ -195,6 +195,7 @@ upload_file <- function(local_file, dataset, txn_type = "UPDATE") {
       stop("An error occurred while uploading files, aborted the transaction: \n", cond)
     }
   )
+  invisible(NULL)
 }
 
 #' @keywords internal
