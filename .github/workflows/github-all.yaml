@@ -1,0 +1,16 @@
+# Workflow validating that all required workflows ran succesfully
+name: github-all
+
+on:
+  # the 1st condition
+  workflow_run:
+    workflows:
+      - build
+    types:
+      - completed
+
+jobs:
+  github-all:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All required jobs finished successfully"
