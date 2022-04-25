@@ -28,7 +28,7 @@ pypalantir <- NULL
 #' @param recreate_environment Whether to recreate the conda environment from scratch
 #' @export
 install_palantir <- function(
-  version = "0.7.0",
+  version = "0.8.0",
   python_version = "3.9",
   envname = "r-reticulate",
   restart_session = TRUE,
