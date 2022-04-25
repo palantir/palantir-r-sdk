@@ -7,7 +7,7 @@ This SDK is incubating and subject to change.
 Install the library from Github:
 ```R
 install.packages("remotes")
-remotes::install_github("https://github.com/palantir/palantir-r-sdk", ref = "0.0.2")
+remotes::install_github("https://github.com/palantir/palantir-r-sdk", ref = "0.1.0")
 ```
 
 This library relies on [palantir-python-sdk](https://github.com/palantir/palantir-python-sdk), so Python must be installed on the system.
@@ -16,7 +16,7 @@ The following command can be used to install the Python SDK and required depende
 palantir::install_palantir()
 ```
 
-Configuration for hostname and an authentication token are provided by environment variables (`FOUNDRY_HOSTNAME`, `FOUNDRY_TOKEN`)
+Configuration for hostname and an authentication token are provided by environment variables (`PALANTIR_HOSTNAME`, `PALANTIR_TOKEN`)
 
 * `PALANTIR_HOSTNAME` is the hostname of your instance e.g. `example.palantirfoundry.com`
 * `PALANTIR_TOKEN` is a token acquired from the `Tokens` section of Foundry Settings 
