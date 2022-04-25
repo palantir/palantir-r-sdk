@@ -36,9 +36,9 @@ install_palantir <- function(
 ) {
   packages <- c(paste0("palantir-sdk==", version), "numpy", "pandas", "pyarrow")
 
-  # check for anaconda installation
-  if (!reticulate::py_available(initialize = TRUE)) {
-    stop("Python is not installed or not in system path.")
+  # check for conda installation
+  if (is.null(reticulate::conda_binary())) {
+    stop("Conda is not available, please run `reticulate::install_miniconda()` to install it.")
   }
 
   if (envname %in% reticulate::conda_list()$name && recreate_environment) {
