@@ -7,7 +7,7 @@
 install_palantir(
   version = "0.4.0",
   python_version = "3.9",
-  envname = "r-palantir",
+  envname = "r-reticulate",
   restart_session = TRUE,
   recreate_environment = FALSE
 )
