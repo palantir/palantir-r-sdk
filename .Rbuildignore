@@ -1,5 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^changelog$
 ^coverage$
 ^palantir.Rcheck$
 ^palantir.*\.tar\.gz$
