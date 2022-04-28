@@ -54,7 +54,8 @@ upload_file(file.path("~", "Downloads", "example"), "/Path/to/dataset")
 You may run into the following error, in particular after restarting your session:
 ```
  Error in on_error(result) : 
-  Use palantir::install_palantir() to install palantir ModuleNotFoundError: No module named 'palantir'
+  Use palantir::install_palantir() to install palantir
+  ModuleNotFoundError: No module named 'palantir'
 ```
 This indicates `reticulate` is not set up to use the right version of python.
 You can set it with the environment variable `RETICULATE_PYTHON`.
