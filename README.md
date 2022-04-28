@@ -49,3 +49,17 @@ write_table(df, "/Path/to/dataset")
 ```R
 upload_file(file.path("~", "Downloads", "example"), "/Path/to/dataset")
 ```
+
+## Troubleshooting
+You may run into the following error, in particular after restarting your session:
+```
+ Error in on_error(result) : 
+  Use palantir::install_palantir() to install palantir ModuleNotFoundError: No module named 'palantir'
+```
+This indicates `reticulate` is not set up to use the right version of python.
+You can set it with the environment variable `RETICULATE_PYTHON`.
+By default, `palantir::install_palantir()` will install the python module in the default conda environment
+so you can add the following to your `.Rprofile`:
+```
+Sys.setenv(RETICULATE_PYTHON = reticulate::conda_python())
+```
