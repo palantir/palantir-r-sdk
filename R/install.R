@@ -79,7 +79,7 @@ install_palantir <- function(
     },
 
     on_error = function(error) {
-      stop(paste("Use palantir::install_palantir() to install palantir", error$message))
+      stop(paste("Use palantir::install_palantir() to install palantir\n", error$message))
     }
   ))
   invisible(NULL)
