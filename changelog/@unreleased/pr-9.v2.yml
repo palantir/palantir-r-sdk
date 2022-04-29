@@ -1,0 +1,10 @@
+type: improvement
+improvement:
+  description: |-
+    Use arrow for read_table and write_table
+
+    For read_table, we're seeing performance issues for large datasets with specific types (e.g. dates). Converting types in python from arrow to pandas and from pandas to data.frame caused an overhead.
+
+    However, this slightly changes the behavior, for instance missing values in a STRING column are now represented as NA rather than NULL, which allows R to preserve the type. These NA values are not properly handled by reticulate when converting to pandas, so we're also using arrow for writeback.
+  links:
+  - https://github.com/palantir/palantir-r-sdk/pull/9
