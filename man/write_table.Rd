@@ -7,10 +7,12 @@
 write_table(data, dataset)
 }
 \arguments{
-\item{data}{A data.frame.}
+\item{data}{A data.frame or an arrow Table.}
 
 \item{dataset}{A Dataset or a character string representing the RID or dataset path.}
 }
 \description{
-Writes a data.frame to a Foundry dataset.
+Note that types may not be exactly preserved and all types are not supported.
+See https://arrow.apache.org/docs/r/articles/arrow.html for details on type conversions
+from a data.frame to an arrow Table. Use arrow::arrow_table to use more granular types.
 }

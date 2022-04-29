@@ -12,6 +12,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+#' @include schema.R
+NULL
+
 #' Retrieves a Foundry Dataset.
 #'
 #' Returns an object representing a specific view of a Foundry dataset.
@@ -35,9 +38,9 @@ get_dataset <- function(dataset_ref, branch = NULL, transaction_range = NULL, cr
 
 #' Reads a tabular Foundry dataset as data.frame.
 #'
-#' Note that the variable classes may not match exactly the Foundry column types.
-#' A STRING column with NULL values will be cast as a list variable to properly
-#' capture NULL values and empty strings.
+#' Note that types may not match exactly the Foundry column types.
+#' See https://arrow.apache.org/docs/r/articles/arrow.html for details on type conversions
+#' from an arrow Table to a data.frame.
 #' For more advanced usage, use `read_table_arrow`.
 #'
 #' @param dataset A Dataset or a character string representing the RID or dataset path.
@@ -47,8 +50,7 @@ get_dataset <- function(dataset_ref, branch = NULL, transaction_range = NULL, cr
 #'
 #' @export
 read_table <- function(dataset) {
-  dataset <- get_dataset_internal(dataset)
-  reticulate::py_to_r(dataset$read_pandas())
+  read_table_arrow(dataset)$to_data_frame()
 }
 
 #' Reads a tabular Foundry dataset as an arrow Table.
@@ -66,27 +68,42 @@ read_table <- function(dataset) {
 #' library(arrow)
 #' library(dplyr)
 #'
-#' df <- read_table.arrow("/path/to/dataset")
+#' df <- read_table_arrow("/path/to/dataset")
 #'     %>% select("column" == "value")
 #'     %>% collect()
 #' }
 read_table_arrow <- function(dataset) {
   dataset <- get_dataset_internal(dataset)
-  if (!requireNamespace("arrow", quietly = TRUE)) {
-    stop("Please install package `arrow` to read a Dataset as an arrow Table.")
-  }
   reticulate::py_to_r(dataset$read_arrow())
 }
 
 #' Writes a data.frame to a Foundry dataset.
 #'
-#' @param data A data.frame.
+#' Note that types may not be exactly preserved and all types are not supported.
+#' See https://arrow.apache.org/docs/r/articles/arrow.html for details on type conversions
+#' from a data.frame to an arrow Table. Use arrow::arrow_table to use more granular types.
+#'
+#' @param data A data.frame or an arrow Table.
 #' @param dataset A Dataset or a character string representing the RID or dataset path.
 #'
 #' @export
 write_table <- function(data, dataset) {
   dataset <- get_dataset_internal(dataset, create = TRUE)
-  dataset$write_pandas(data)
+
+  if (inherits(data, "data.frame")) {
+    data <- arrow::arrow_table(data)
+  }
+  if (!inherits(data, "Table")) {
+    stop("data must be a data.frame or an arrow Table")
+  }
+
+  foundry_schema <- arrow_to_foundry_schema(data)
+  target <- tempfile(fileext = ".parquet")
+  arrow::write_parquet(data, target)
+  upload_file(target, dataset, txn_type = "SNAPSHOT")
+  file.remove(target)
+
+  dataset$client$put_schema(dataset, foundry_schema)
   invisible(NULL)
 }
 

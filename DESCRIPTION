@@ -1,7 +1,7 @@
 Type: Package
 Package: palantir
 Title: Interface to Palantir
-Version: 0.0.1
+Version: 0.1.1
 Authors@R:
     c(person(given = "Alexandre",
              family = "Guinaudeau",
@@ -17,14 +17,15 @@ RoxygenNote: 7.1.1
 Depends: 
     R (>= 3.5.0)
 Imports:
+    arrow (>= 0.14.0),
     reticulate (>= 1.12)
 Suggests:
-    arrow (>= 0.14.0),
     dplyr,
     lintr,
     testthat (>= 3.0.0),
     rstudioapi,
     withr
 Collate: 
+    'schema.R'
     'datasets.R'
     'install.R'
