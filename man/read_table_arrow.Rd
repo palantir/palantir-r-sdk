@@ -21,7 +21,7 @@ The `arrow` library must be loaded prior to calling this function.
 library(arrow)
 library(dplyr)
 
-df <- read_table.arrow("/path/to/dataset")
+df <- read_table_arrow("/path/to/dataset")
     \%>\% select("column" == "value")
     \%>\% collect()
 }

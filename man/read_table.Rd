@@ -14,8 +14,8 @@ The Foundry dataset must be tabular, i.e. have a schema.}
 A data.table
 }
 \description{
-Note that the variable classes may not match exactly the Foundry column types.
-A STRING column with NULL values will be cast as a list variable to properly
-capture NULL values and empty strings.
+Note that types may not match exactly the Foundry column types.
+See https://arrow.apache.org/docs/r/articles/arrow.html for details on type conversions
+from an arrow Table to a data.frame.
 For more advanced usage, use `read_table_arrow`.
 }
