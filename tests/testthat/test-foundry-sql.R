@@ -5,7 +5,7 @@ BRANCH_ID <- "master" # nolint
 END_TRANSACTION_RID <- "ri.foundry.main.transaction.12345678-1234-1234-1234-000000000001" # nolint
 
 SQL_QUERY <- SqlQueryService$new( # nolint
-  hostname = "example.palantirfoundry.com",
+  hostname = "example.com",
   auth_token = "token",
   user_agent = "palantir-r-sdk/test",
   timeout = 10)
