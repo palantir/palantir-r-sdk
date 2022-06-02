@@ -1,0 +1,10 @@
+{
+  "queryId": "12345678-1234-1234-1234-000000000003",
+  "status": {
+    "type": "failed",
+    "failed": {
+      "failure_reason": "NOT_FOUND",
+      "error_message": "Dataset not found"
+    }
+  }
+}

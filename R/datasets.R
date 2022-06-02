@@ -74,7 +74,12 @@ read_table <- function(dataset) {
 #' }
 read_table_arrow <- function(dataset) {
   dataset <- get_dataset_internal(dataset)
-  reticulate::py_to_r(dataset$read_arrow())
+  context <- get_context()
+  sql_query <- SqlQueryService$new(
+    hostname = context$hostname,
+    auth_token = context$auth_token,
+    user_agent = get_user_agent())
+  sql_query$read_dataset(dataset$locator)
 }
 
 #' Writes a data.frame to a Foundry dataset.
@@ -223,6 +228,13 @@ upload_file_internal <- function(txn, local_path, logical_path) {
 #' @keywords internal
 get_context <- function() {
   pypalantir$core$context(hostname = Sys.getenv("PALANTIR_HOSTNAME"), token = Sys.getenv("PALANTIR_TOKEN"))
+}
+
+#' @keywords internal
+get_user_agent <- function() {
+  user_agent <- reticulate::py_to_r(pypalantir$core$rpc$USER_AGENT)
+  user_agent <- lapply(user_agent, paste, collapse = "/")
+  paste(user_agent, collapse = " ")
 }
 
 #' @keywords internal
