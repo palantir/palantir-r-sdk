@@ -165,7 +165,7 @@ SqlQueryService <- R6::R6Class( # nolint
         if (dtype != "A") {
           # N.B. we assume since the query is a simple select star that we are direct read eligible, if the stack is not
           # properly configured for direct read this will fail
-          stop("Foundry does not seem to support direct reads, please contact your Palantir administrator", dtype)
+          stop("Foundry is not configured for direct reads, please contact your Palantir administrator")
         }
         reader <- arrow::RecordBatchStreamReader$create(stream)
         tab <- tryCatch(
