@@ -17,14 +17,15 @@ SqlQueryService <- R6::R6Class( # nolint
   "SqlQueryService",
   public = list(
     api_client = NULL,
-    initialize = function(hostname, auth_token, user_agent) {
+    initialize = function(hostname, auth_token, user_agent, timeout) {
       self$api_client <- ApiClient$new(
         base_path = paste0("https://", hostname, "/foundry-sql-server/api/queries"),
         user_agent = user_agent,
         access_token = auth_token,
         # match java remoting
         # https://github.com/palantir/conjure-java-runtime/tree/3.12.0#quality-of-service-retry-failover-throttling
-        retry_status_codes = c(308, 429, 503))
+        retry_status_codes = c(308, 429, 503),
+        timeout = timeout)
     },
 
     execute = function(query, dialect="ANSI", serialization_protocol="ARROW", fallback_branch_ids=vector()) {
@@ -32,7 +33,8 @@ SqlQueryService <- R6::R6Class( # nolint
         query = jsonlite::unbox(query),
         dialect = jsonlite::unbox(dialect),
         serializationProtocol = jsonlite::unbox(serialization_protocol),
-        fallbackBranchIds = fallback_branch_ids
+        fallbackBranchIds = fallback_branch_ids,
+        timeout = jsonlite::unbox(1000 * self$api_client$timeout)
       )
 
       api_response <- self$execute_with_http_info(sql_execute_request)
@@ -166,8 +168,12 @@ SqlQueryService <- R6::R6Class( # nolint
           stop("Foundry does not seem to support direct reads, please contact your Palantir administrator", dtype)
         }
         reader <- arrow::RecordBatchStreamReader$create(stream)
-        tab <- reader$read_table()
-
+        tab <- tryCatch(
+          reader$read_table(),
+          error = function(e) {
+            stop("Failed to read the arrow Table. You may retry as this could be due to a network issue.", e)
+          }
+        )
         ApiResponse$new(tab, resp)
       } else if (httr::status_code(resp) >= 300 && httr::status_code(resp) <= 399) {
         ApiResponse$new(paste("Server returned ", httr::status_code(resp), " response status code."), resp)

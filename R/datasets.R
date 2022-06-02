@@ -59,6 +59,7 @@ read_table <- function(dataset) {
 #'
 #' @param dataset A Dataset or a character string representing the RID or dataset path.
 #' The Foundry dataset must be tabular, i.e. have a schema.
+#' @param timeout The request timeout, in seconds.
 #'
 #' @return An arrow Table
 #'
@@ -72,13 +73,14 @@ read_table <- function(dataset) {
 #'     %>% select("column" == "value")
 #'     %>% collect()
 #' }
-read_table_arrow <- function(dataset) {
+read_table_arrow <- function(dataset, timeout = 150) {
   dataset <- get_dataset_internal(dataset)
   context <- get_context()
   sql_query <- SqlQueryService$new(
     hostname = context$hostname,
     auth_token = context$auth_token,
-    user_agent = get_user_agent())
+    user_agent = get_user_agent(),
+    timeout = timeout) # The default timeout in curl is 150s
   sql_query$read_dataset(dataset$locator)
 }
 
