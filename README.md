@@ -9,7 +9,7 @@ This SDK is incubating and subject to change.
 Install the library from Github:
 ```R
 install.packages("remotes")
-remotes::install_github("https://github.com/palantir/palantir-r-sdk", ref = "0.2.0")
+remotes::install_github("https://github.com/palantir/palantir-r-sdk", ref = "0.3.0")
 ```
 
 This library relies on [palantir-python-sdk](https://github.com/palantir/palantir-python-sdk), so Python must be installed on the system.
