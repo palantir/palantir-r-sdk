@@ -1,0 +1,12 @@
+type: improvement
+improvement:
+  description: |-
+    Implement an HTTP client for Foundry-SQL
+
+    We've ran into some issues when using reticulate with arrow, where pyarrow was using the libraries binding provided by the R arrow library instead of pyarrow. Migrating `read_table_arrow` to a native implementation in R to remove the dependency on pyarrow.
+
+    Notes:
+    - Using the OpenAPI base classes for the HTTP client and ApiResponse object types
+    - Leveraging these classes in SqlQueryService, but adapting them to call methods with primitive types instead of defining objects for each request and response, and to support an arrow Table response in get_results
+  links:
+  - https://github.com/palantir/palantir-r-sdk/pull/10
