@@ -1,0 +1,10 @@
+{
+  "queryId": "2",
+  "status": {
+    "type": "failed",
+    "failed": {
+      "failure_reason": "NOT_FOUND",
+      "error_message": "Dataset not found"
+    }
+  }
+}
