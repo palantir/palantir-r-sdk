@@ -11,8 +11,8 @@ SQL_QUERY <- SqlQueryService$new( # nolint
 
 httptest::with_mock_api({
   test_that("Successful query returns an arrow Table", {
-    # execute-f7c03c
-    df <- data.frame(list("foo" = as.integer(c(1, 2, 3)), "bar" = c("a", "b", "c")))
+    # execute-311d3b
+    df <- data.frame(list("foo" = as.integer(c(1, 2, 3)), "bar" = as.character(c("a", "b", "c"))))
     dataset <- SQL_QUERY$read_dataset(list(
       rid = DATASET_RID_SUCCESS,
       branch_id = BRANCH_ID,
@@ -23,7 +23,7 @@ httptest::with_mock_api({
 
 httptest::with_mock_api({
   test_that("Failed query throws an error", {
-    # execute-98dc4b
+    # execute-719980
     expect_error(
       SQL_QUERY$read_dataset(list(
         rid = DATASET_RID_ERROR,

@@ -27,7 +27,7 @@ SqlQueryService <- R6::R6Class( # nolint
         retry_status_codes = c(308, 429, 503))
     },
 
-    execute = function(query, dialect="ANSI", serialization_protocol="ARROW", fallback_branch_ids=c()) {
+    execute = function(query, dialect="ANSI", serialization_protocol="ARROW", fallback_branch_ids=vector()) {
       sql_execute_request <- list(
         query = jsonlite::unbox(query),
         dialect = jsonlite::unbox(dialect),
@@ -40,7 +40,7 @@ SqlQueryService <- R6::R6Class( # nolint
       if (httr::status_code(resp) >= 200 && httr::status_code(resp) <= 299) {
         api_response$content
       } else if (httr::status_code(resp) >= 300 && httr::status_code(resp) <= 599) {
-        api_response
+        httr::stop_for_status(resp)
       }
     },
     execute_with_http_info = function(sql_execute_request) {
@@ -86,7 +86,7 @@ SqlQueryService <- R6::R6Class( # nolint
       if (httr::status_code(resp) >= 200 && httr::status_code(resp) <= 299) {
         api_response$content
       } else if (httr::status_code(resp) >= 300 && httr::status_code(resp) <= 599) {
-        api_response
+        httr::stop_for_status(resp)
       }
     },
     get_status_with_http_info = function(query_id) {
@@ -105,7 +105,7 @@ SqlQueryService <- R6::R6Class( # nolint
       header_params["Authorization"] <- paste("Bearer", self$api_client$access_token, sep = " ")
 
       resp <- self$api_client$CallApi(url = paste0(self$api_client$base_path, url_path),
-                                      method = "POST",
+                                      method = "GET",
                                       query_params = query_params,
                                       header_params = header_params,
                                       body = body)
@@ -133,7 +133,7 @@ SqlQueryService <- R6::R6Class( # nolint
       if (httr::status_code(resp) >= 200 && httr::status_code(resp) <= 299) {
         api_response$content
       } else if (httr::status_code(resp) >= 300 && httr::status_code(resp) <= 599) {
-        api_response
+        httr::stop_for_status(resp)
       }
     },
     get_results_with_http_info = function(query_id) {
@@ -152,7 +152,7 @@ SqlQueryService <- R6::R6Class( # nolint
       header_params["Authorization"] <- paste("Bearer", self$api_client$access_token, sep = " ")
 
       resp <- self$api_client$CallApi(url = paste0(self$api_client$base_path, url_path),
-                                      method = "POST",
+                                      method = "GET",
                                       query_params = query_params,
                                       header_params = header_params,
                                       body = body)
