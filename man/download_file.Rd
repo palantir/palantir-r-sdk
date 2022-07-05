@@ -8,9 +8,9 @@ download_file(
   dataset,
   logical_path,
   target,
-  ...,
   branch = NULL,
-  transaction = NULL
+  transaction = NULL,
+  ...
 )
 }
 \arguments{
@@ -20,11 +20,11 @@ download_file(
 
 \item{target}{A character string representing the location where the file should be downloaded.}
 
-\item{...}{Extra parameters to pass to the download.file() function.}
-
 \item{branch}{The dataset branch.}
 
 \item{transaction}{The dataset transaction.}
+
+\item{...}{Extra parameters to pass to the download.file() function.}
 }
 \description{
 Download a Foundry File locally.

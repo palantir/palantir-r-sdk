@@ -7,10 +7,10 @@
 download_files(
   dataset,
   target,
-  ...,
   branch = NULL,
   transaction = NULL,
-  path = NULL
+  path = NULL,
+  ...
 )
 }
 \arguments{
@@ -19,13 +19,13 @@ download_files(
 \item{target}{A character string representing the directory where the file should be downloaded.
 The directory or its parent should exist.}
 
-\item{...}{Extra parameters to pass to the download.file() function.}
-
 \item{branch}{The dataset branch.}
 
 \item{transaction}{The dataset transaction.}
 
 \item{path}{If present, only the file or the files with the specified prefix will be downloaded.}
+
+\item{...}{Extra parameters to pass to the download.file() function.}
 }
 \description{
 Download multiple files from a Foundry Dataset locally.

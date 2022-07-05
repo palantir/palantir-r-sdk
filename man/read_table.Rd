@@ -4,13 +4,11 @@
 \alias{read_table}
 \title{Reads a tabular Foundry dataset as data.frame.}
 \usage{
-read_table(dataset, ..., branch = NULL, transaction = NULL)
+read_table(dataset, branch = NULL, transaction = NULL)
 }
 \arguments{
 \item{dataset}{A Dataset or a character string representing the RID or dataset path.
 The Foundry dataset must be tabular, i.e. have a schema.}
-
-\item{...}{Ignored, used to bind optional arguments by name}
 
 \item{branch}{The dataset branch.}
 

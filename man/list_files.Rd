@@ -4,12 +4,10 @@
 \alias{list_files}
 \title{Lists the files stored in a Foundry Dataset.}
 \usage{
-list_files(dataset, ..., branch = NULL, transaction = NULL, path = NULL)
+list_files(dataset, branch = NULL, transaction = NULL, path = NULL)
 }
 \arguments{
 \item{dataset}{A Dataset or a character string representing the RID or dataset path.}
-
-\item{...}{Ignored, used to bind optional arguments by name}
 
 \item{branch}{The dataset branch.}
 

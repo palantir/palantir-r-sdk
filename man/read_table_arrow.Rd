@@ -4,19 +4,11 @@
 \alias{read_table_arrow}
 \title{Reads a tabular Foundry dataset as an arrow Table.}
 \usage{
-read_table_arrow(
-  dataset,
-  ...,
-  branch = NULL,
-  transaction = NULL,
-  timeout = 150
-)
+read_table_arrow(dataset, branch = NULL, transaction = NULL, timeout = 150)
 }
 \arguments{
 \item{dataset}{A Dataset or a character string representing the RID or dataset path.
 The Foundry dataset must be tabular, i.e. have a schema.}
-
-\item{...}{Ignored, used to bind optional arguments by name}
 
 \item{branch}{The dataset branch.}
 
