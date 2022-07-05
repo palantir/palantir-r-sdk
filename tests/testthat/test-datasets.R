@@ -1,5 +1,9 @@
 DATASET <- "/path/to/dataset" # nolint
 
+mock_get_dataset_view <- function(dataset, ...) {
+  dataset
+}
+
 mock_file <- function(path) {
   reticulate::r_to_py(list(path = path))
 }
@@ -22,6 +26,7 @@ test_that("download_files works as expected", {
   withr::with_tempfile(
     "dir", {
       with_mock(
+        get_dataset_view = mock_get_dataset_view,
         download_file = mocked_download_file,
         list_files = mocked_list_files,
         {
@@ -50,6 +55,7 @@ test_that("download_files can download a subfolder of a dataset", {
   withr::with_tempfile(
     "dir", {
       with_mock(
+        get_dataset_view = mock_get_dataset_view,
         download_file = mocked_download_file,
         list_files = mocked_list_files,
         {
@@ -71,6 +77,7 @@ test_that("download_files throws an error when dataset is empty", {
   withr::with_tempfile(
     "dir", {
       with_mock(
+        get_dataset_view = mock_get_dataset_view,
         download_file = mocked_download_file,
         list_files = mocked_list_files,
         {
@@ -90,6 +97,7 @@ test_that("download_files throws an error when target directory is not empty", {
   withr::with_tempfile(
     "dir", {
       with_mock(
+        get_dataset_view = mock_get_dataset_view,
         download_file = mocked_download_file,
         list_files = mocked_list_files,
         {

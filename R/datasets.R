@@ -15,27 +15,6 @@
 #' @include schema.R
 NULL
 
-#' Retrieves a Foundry Dataset.
-#'
-#' Returns an object representing a specific view of a Foundry dataset.
-#'
-#' @param dataset_ref A dataset RID or path.
-#' @param branch The dataset branch.
-#' @param transaction_range A list of 2 nullable characters representing the start and end transaction RIDs.
-#' @param create A boolean indicating whether the dataset should be created if it does not exist yet.
-#'
-#' @return A Dataset object representing the dataset view.
-#'
-#' @export
-get_dataset <- function(dataset_ref, branch = NULL, transaction_range = NULL, create = FALSE) {
-  pypalantir$datasets$dataset(
-    dataset_ref,
-    branch,
-    transaction_range = transaction_range,
-    ctx = get_context(),
-    create = create)
-}
-
 #' Reads a tabular Foundry dataset as data.frame.
 #'
 #' Note that types may not match exactly the Foundry column types.
@@ -45,12 +24,15 @@ get_dataset <- function(dataset_ref, branch = NULL, transaction_range = NULL, cr
 #'
 #' @param dataset A Dataset or a character string representing the RID or dataset path.
 #' The Foundry dataset must be tabular, i.e. have a schema.
+#' @param ... Ignored, used to bind optional arguments by name
+#' @param branch The dataset branch.
+#' @param transaction The dataset transaction.
 #'
 #' @return A data.table
 #'
 #' @export
-read_table <- function(dataset) {
-  read_table_arrow(dataset)$to_data_frame()
+read_table <- function(dataset, ..., branch = NULL, transaction = NULL) {
+  read_table_arrow(dataset, branch = branch, transaction = transaction)$to_data_frame()
 }
 
 #' Reads a tabular Foundry dataset as an arrow Table.
@@ -59,6 +41,9 @@ read_table <- function(dataset) {
 #'
 #' @param dataset A Dataset or a character string representing the RID or dataset path.
 #' The Foundry dataset must be tabular, i.e. have a schema.
+#' @param ... Ignored, used to bind optional arguments by name
+#' @param branch The dataset branch.
+#' @param transaction The dataset transaction.
 #' @param timeout The request timeout, in seconds.
 #'
 #' @return An arrow Table
@@ -73,8 +58,8 @@ read_table <- function(dataset) {
 #'     %>% select("column" == "value")
 #'     %>% collect()
 #' }
-read_table_arrow <- function(dataset, timeout = 150) {
-  dataset <- get_dataset_internal(dataset)
+read_table_arrow <- function(dataset, ..., branch = NULL, transaction = NULL, timeout = 150) {
+  dataset <- get_dataset_view(dataset, branch = branch, transaction = transaction)
   context <- get_context()
   sql_query <- SqlQueryService$new(
     hostname = context$hostname,
@@ -92,10 +77,12 @@ read_table_arrow <- function(dataset, timeout = 150) {
 #'
 #' @param data A data.frame or an arrow Table.
 #' @param dataset A Dataset or a character string representing the RID or dataset path.
+#' @param ... Ignored, used to bind optional arguments by name
+#' @param branch The dataset branch.
 #'
 #' @export
-write_table <- function(data, dataset) {
-  dataset <- get_dataset_internal(dataset, create = TRUE)
+write_table <- function(data, dataset, ..., branch = NULL) {
+  dataset <- get_dataset_view(dataset, branch = branch, create = TRUE)
 
   if (inherits(data, "data.frame")) {
     data <- arrow::arrow_table(data)
@@ -117,13 +104,16 @@ write_table <- function(data, dataset) {
 #' Lists the files stored in a Foundry Dataset.
 #'
 #' @param dataset A Dataset or a character string representing the RID or dataset path.
-#' @param path If present, only the specified file or the files in the specified folder will be returned.
+#' @param ... Ignored, used to bind optional arguments by name
+#' @param branch The dataset branch.
+#' @param transaction The dataset transaction.
+#' @param path If present, only the file or the files with the specified prefix will be returned.
 #'
 #' @return A list of File objects representing the files in the dataset.
 #'
 #' @export
-list_files <- function(dataset, path = NULL) {
-  dataset <- get_dataset_internal(dataset)
+list_files <- function(dataset, ..., branch = NULL, transaction = NULL, path = NULL) {
+  dataset <- get_dataset_view(dataset, branch = branch, transaction = transaction)
   response <- reticulate::iterate(dataset$list_files(path))
   response
 }
@@ -134,13 +124,15 @@ list_files <- function(dataset, path = NULL) {
 #' @param logical_path A character string representing the logical path of the file in the Dataset.
 #' @param target A character string representing the location where the file should be downloaded.
 #' @param ... Extra parameters to pass to the download.file() function.
+#' @param branch The dataset branch.
+#' @param transaction The dataset transaction.
 #'
 #' @export
-download_file <- function(dataset, logical_path, target, ...) {
+download_file <- function(dataset, logical_path, target, ..., branch = NULL, transaction = NULL) {
   if (!is.character(logical_path)) {
     stop("logical_path should be a character string")
   }
-  dataset <- get_dataset_internal(dataset)
+  dataset <- get_dataset_view(dataset, branch = branch, transaction = transaction)
   utils::download.file(
     get_file_in_txn_view_url(dataset, logical_path),
     target,
@@ -153,11 +145,14 @@ download_file <- function(dataset, logical_path, target, ...) {
 #' @param dataset A Dataset or a character string representing the RID or dataset path.
 #' @param target A character string representing the directory where the file should be downloaded.
 #' The directory or its parent should exist.
-#' @param path If present, only the specified file or the files in the specified folder will be downloaded.
 #' @param ... Extra parameters to pass to the download.file() function.
+#' @param branch The dataset branch.
+#' @param transaction The dataset transaction.
+#' @param path If present, only the file or the files with the specified prefix will be downloaded.
 #'
 #' @export
-download_files <- function(dataset, target, path = NULL, ...) {
+download_files <- function(dataset, target, ..., branch = NULL, transaction = NULL, path = NULL) {
+  dataset <- get_dataset_view(dataset, branch = branch, transaction = transaction)
   files <- list_files(dataset, path)
   if (length(files) == 0) {
     stop("No files found in the dataset.")
@@ -191,17 +186,19 @@ download_files <- function(dataset, target, path = NULL, ...) {
 #' @param local_file A character string representing the location of the file or folder to upload.
 #' If a folder is provided, all files found recursively in subfolders will be uploaded.
 #' @param dataset A Dataset or a character string representing the RID or dataset path.
+#' @param ... Ignored, used to bind optional arguments by name
+#' @param branch The dataset branch.
 #' @param txn_type The type of the transaction, must be one of 'UPDATE', 'APPEND', 'SNAPSHOT'.
 #'
 #' @export
-upload_file <- function(local_file, dataset, txn_type = "UPDATE") {
+upload_file <- function(local_file, dataset, ..., branch = NULL, txn_type = "UPDATE") {
   if (!file.exists(local_file)) {
     stop("The file to upload does not exist: ", local_file)
   }
   if (!txn_type %in% c("UPDATE", "APPEND", "SNAPSHOT")) {
     stop("The transaction type must be one of 'UPDATE', 'APPEND', 'SNAPSHOT'")
   }
-  dataset <- get_dataset_internal(dataset, create = TRUE)
+  dataset <- get_dataset_view(dataset, branch = branch, create = TRUE)
   txn <- dataset$start_transaction(txn_type = txn_type)
   tryCatch(
     {
@@ -240,9 +237,19 @@ get_user_agent <- function() {
 }
 
 #' @keywords internal
-get_dataset_internal <- function(dataset, create = FALSE) {
+get_dataset_view <- function(dataset, branch = NULL, transaction = NULL, create = FALSE) {
   if (is.character(dataset)) {
-    dataset <- get_dataset(dataset_ref = dataset, create = create)
+    if (is.null(transaction)) {
+      transaction_range <- NULL
+    } else {
+      transaction_range <- reticulate::tuple(NULL, transaction)
+    }
+    dataset <- pypalantir$datasets$dataset(
+      dataset,
+      branch = branch,
+      transaction_range = transaction_range,
+      ctx = get_context(),
+      create = create)
   }
   if (!inherits(dataset, "palantir.datasets.core.Dataset")) {
     stop("dataset must be a Dataset or a character string")

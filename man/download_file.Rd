@@ -4,7 +4,14 @@
 \alias{download_file}
 \title{Download a Foundry File locally.}
 \usage{
-download_file(dataset, logical_path, target, ...)
+download_file(
+  dataset,
+  logical_path,
+  target,
+  ...,
+  branch = NULL,
+  transaction = NULL
+)
 }
 \arguments{
 \item{dataset}{A Dataset or a character string representing the RID or dataset path.}
@@ -14,6 +21,10 @@ download_file(dataset, logical_path, target, ...)
 \item{target}{A character string representing the location where the file should be downloaded.}
 
 \item{...}{Extra parameters to pass to the download.file() function.}
+
+\item{branch}{The dataset branch.}
+
+\item{transaction}{The dataset transaction.}
 }
 \description{
 Download a Foundry File locally.
