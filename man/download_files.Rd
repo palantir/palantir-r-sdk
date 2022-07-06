@@ -4,7 +4,14 @@
 \alias{download_files}
 \title{Download multiple files from a Foundry Dataset locally.}
 \usage{
-download_files(dataset, target, path = NULL, ...)
+download_files(
+  dataset,
+  target,
+  branch = NULL,
+  transaction = NULL,
+  path = NULL,
+  ...
+)
 }
 \arguments{
 \item{dataset}{A Dataset or a character string representing the RID or dataset path.}
@@ -12,7 +19,11 @@ download_files(dataset, target, path = NULL, ...)
 \item{target}{A character string representing the directory where the file should be downloaded.
 The directory or its parent should exist.}
 
-\item{path}{If present, only the specified file or the files in the specified folder will be downloaded.}
+\item{branch}{The dataset branch.}
+
+\item{transaction}{The dataset transaction.}
+
+\item{path}{If present, only the file or the files with the specified prefix will be downloaded.}
 
 \item{...}{Extra parameters to pass to the download.file() function.}
 }
