@@ -31,7 +31,8 @@ NULL
 #'
 #' @export
 read_table <- function(dataset, branch = NULL, transaction = NULL) {
-  read_table_arrow(dataset, branch = branch, transaction = transaction)$to_data_frame()
+  df <- read_table_arrow(dataset, branch = branch, transaction = transaction)$to_data_frame()
+  head(df, n=nrow(df))
 }
 
 #' Reads a tabular Foundry dataset as an arrow Table.

@@ -1,7 +1,7 @@
 Type: Package
 Package: palantir
 Title: Interface to Palantir
-Version: 0.4.0
+Version: 0.5.0
 Authors@R:
     c(person(given = "Alexandre",
              family = "Guinaudeau",
