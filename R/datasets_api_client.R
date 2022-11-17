@@ -73,14 +73,8 @@ DatasetsApiService <- R6::R6Class(
       self$api_client$stop_for_status(response)
       httr::content(response, as = "parsed")
     },
-    export_table = function(
-        dataset_rid,
-        format,
-        branch_id = NULL,
-        start_transaction_rid = NULL,
-        end_transaction_rid = NULL,
-        columns = NULL,
-        row_limit = NULL) {
+    export_table = function(dataset_rid, format, branch_id = NULL, start_transaction_rid = NULL,
+                            end_transaction_rid = NULL, columns = NULL, row_limit = NULL) {
       url_path <- sprintf("/v1/datasets/%s/exportTable", dataset_rid)
       query_params <- list(
         "preview" = TRUE
@@ -99,13 +93,8 @@ DatasetsApiService <- R6::R6Class(
 
       self$api_client$stop_for_status(response)
     },
-    list_files = function(
-        dataset_rid,
-        branch_id = NULL,
-        start_transaction_rid = NULL,
-        end_transaction_rid = NULL,
-        page_size = NULL,
-        page_token = NULL) {
+    list_files = function(dataset_rid, branch_id = NULL, start_transaction_rid = NULL, end_transaction_rid = NULL,
+                          page_size = NULL, page_token = NULL) {
       url_path <- sprintf("/v1/datasets/%s/files", dataset_rid)
       query_params <- list(
         "preview" = TRUE

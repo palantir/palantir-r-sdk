@@ -30,20 +30,11 @@ NULL
 #' @return A data.table
 #'
 #' @export
-read_table <- function(
-    dataset_rid,
-    branch_id = NULL,
-    start_transaction_rid = NULL,
-    end_transaction_rid = NULL,
-    columns = NULL,
-    row_limit = NULL) {
-  arrow_table <- read_table_arrow(
-    dataset_rid = dataset_rid,
-    branch_id = branch_id,
-    start_transaction_rid = start_transaction_rid,
-    end_transaction_rid = end_transaction_rid,
-    columns = columns,
-    row_limit = row_limit)
+read_table <- function(dataset_rid, branch_id = NULL, start_transaction_rid = NULL, end_transaction_rid = NULL,
+                       columns = NULL, row_limit = NULL) {
+  arrow_table <- read_table_arrow(dataset_rid = dataset_rid, branch_id = branch_id,
+                                  start_transaction_rid = start_transaction_rid,
+                                  end_transaction_rid = end_transaction_rid, columns = columns, row_limit = row_limit)
   df <- arrow_table$to_data_frame()
   head(df, n = nrow(df))
 }
@@ -58,21 +49,12 @@ read_table <- function(
 #' @return An arrow Table
 #'
 #' @export
-read_table_arrow <- function(
-    dataset_rid,
-    branch_id = NULL,
-    start_transaction_rid = NULL,
-    end_transaction_rid = NULL,
-    columns = NULL,
-    row_limit = NULL) {
-  response <- get_datasets_client()$export_table(
-    dataset_rid = dataset_rid,
-    format = "ARROW",
-    branch_id = branch_id,
-    start_transaction_rid = start_transaction_rid,
-    end_transaction_rid = end_transaction_rid,
-    columns = columns,
-    row_limit = row_limit)
+read_table_arrow <- function(dataset_rid, branch_id = NULL, start_transaction_rid = NULL, end_transaction_rid = NULL,
+                             columns = NULL, row_limit = NULL) {
+  response <- get_datasets_client()$export_table(dataset_rid = dataset_rid, format = "ARROW", branch_id = branch_id,
+                                                 start_transaction_rid = start_transaction_rid,
+                                                 end_transaction_rid = end_transaction_rid, columns = columns,
+                                                 row_limit = row_limit)
 
   stream <- arrow::BufferReader$create(httr::content(response, "raw"))
   reader <- arrow::RecordBatchStreamReader$create(stream)
@@ -125,21 +107,13 @@ write_table <- function(data, dataset_rid, branch_id = NULL) {
 #' @return A list of File objects representing the files in the dataset.
 #'
 #' @export
-list_files <- function(
-    dataset_rid,
-    branch_id = NULL,
-    start_transaction_rid = NULL,
-    end_transaction_rid = NULL,
-    limit = NULL) {
+list_files <- function(dataset_rid, branch_id = NULL, start_transaction_rid = NULL, end_transaction_rid = NULL,
+                       limit = NULL) {
 
   datasets <- get_datasets_client()
 
-  files <- datasets$list_files(
-    dataset_rid,
-    branch_id = branch_id,
-    start_transaction_rid = start_transaction_rid,
-    end_transaction_rid = end_transaction_rid,
-    page_size = limit)
+  files <- datasets$list_files(dataset_rid, branch_id = branch_id, start_transaction_rid = start_transaction_rid,
+                               end_transaction_rid = end_transaction_rid, page_size = limit)
 
   if (is.null(files$nextPageToken)) {
     return(files$data)
@@ -154,13 +128,9 @@ list_files <- function(
       }
       limit <- limit - length(files$data)
     }
-    files <- datasets$list_files(
-      dataset_rid,
-      branch_id = branch_id,
-      start_transaction_rid = start_transaction_rid,
-      end_transaction_rid = end_transaction_rid,
-      page_token = files$nextPageToken,
-      page_size = limit)
+    files <- datasets$list_files(dataset_rid, branch_id = branch_id, start_transaction_rid = start_transaction_rid,
+                                 end_transaction_rid = end_transaction_rid, page_token = files$nextPageToken,
+                                 page_size = limit)
     data[[length(data) + 1]] <- files$data
     nfiles <- nfiles + length(files$data)
   }
@@ -178,21 +148,11 @@ list_files <- function(
 #' @param overwrite whether the target should be overwritten.
 #'
 #' @export
-download_file <- function(
-    dataset_rid,
-    file_path,
-    target,
-    branch_id = NULL,
-    start_transaction_rid = NULL,
-    end_transaction_rid = NULL,
-    overwrite = FALSE) {
-  file <- get_datasets_client()$get_file_content(
-    dataset_rid,
-    file_path,
-    branch_id = branch_id,
-    start_transaction_rid = start_transaction_rid,
-    end_transaction_rid = end_transaction_rid
-  )
+download_file <- function(dataset_rid, file_path, target, branch_id = NULL, start_transaction_rid = NULL,
+                          end_transaction_rid = NULL, overwrite = FALSE) {
+  file <- get_datasets_client()$get_file_content(dataset_rid, file_path, branch_id = branch_id,
+                                                 start_transaction_rid = start_transaction_rid,
+                                                 end_transaction_rid = end_transaction_rid)
   writeBin(file$content, target)
 }
 
@@ -206,22 +166,14 @@ download_file <- function(
 #' @param end_transaction_rid The Resource Identifier (RID) of the end Transaction.
 #'
 #' @export
-download_files <- function(
-    dataset_rid,
-    target,
-    branch_id = NULL,
-    start_transaction_rid = NULL,
-    end_transaction_rid = NULL) {
+download_files <- function(dataset_rid, target, branch_id = NULL, start_transaction_rid = NULL,
+                           end_transaction_rid = NULL) {
   if (!dir.exists(target)) {
     dir.create(target)
   } else if (length(list.files(target)) != 0) {
     stop("Target directory is not empty, files will not be downloaded.")
   }
-  files <- list_files(
-    dataset_rid,
-    branch_id = NULL,
-    start_transaction_rid = NULL,
-    end_transaction_rid = NULL)
+  files <- list_files(dataset_rid, branch_id = NULL, start_transaction_rid = NULL, end_transaction_rid = NULL)
   if (length(files) == 0) {
     stop("No files found in the dataset.")
   }
@@ -252,23 +204,17 @@ upload_file <- function(local_file, dataset_rid, branch_id = NULL, transaction_t
     stop("The file to upload does not exist: ", local_file)
   }
   if (!dir.exists(local_file)) {
-    get_datasets_client()$upload_file(
-      dataset_rid,
-      basename(local_file),
-      branch_id = branch_id,
-      transaction_type = transaction_type,
-      body = readBin(local_file, "raw", n = file.info(local_file)$size))
+    get_datasets_client()$upload_file(dataset_rid, basename(local_file), branch_id = branch_id,
+                                      transaction_type = transaction_type,
+                                      body = readBin(local_file, "raw", n = file.info(local_file)$size))
     return(invisible(NULL))
   }
 
   datasets <- get_datasets_client()
   txn <- datasets$create_transaction(dataset_rid, branch_id = branch_id, transaction_type = transaction_type)
   upload_file_to_transaction <- function(file_path, file_name) {
-    datasets$upload_file(
-      dataset_rid,
-      file_name,
-      transaction_rid = txn$rid,
-      body = readBin(file_path, "raw", n = file.info(file_path)$size))
+    datasets$upload_file(dataset_rid, file_name, transaction_rid = txn$rid,
+                         body = readBin(file_path, "raw", n = file.info(file_path)$size))
   }
   tryCatch(
     {

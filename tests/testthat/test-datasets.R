@@ -1,5 +1,5 @@
-DATASET_RID <- "ri.foundry.main.dataset.c26f11c8-cdb3-4f44-9f5d-9816ea1c82da" # nolint
-TRANSACTION_RID <- "ri.foundry.main.transaction.00000029-5a26-c1ff-91c5-454d28c9af90" # nolint
+DATASET_RID <- "ri.foundry.main.dataset.c26f11c8-cdb3-4f44-9f5d-9816ea1c82da"
+TRANSACTION_RID <- "ri.foundry.main.transaction.00000029-5a26-c1ff-91c5-454d28c9af90"
 
 mock_file <- function(path) {
   list(

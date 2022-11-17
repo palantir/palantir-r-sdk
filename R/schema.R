@@ -13,7 +13,7 @@
 #  limitations under the License.
 
 #' @keywords internal
-ARROW_TO_FOUNDRY_FIELDS <- c( # nolint
+ARROW_TO_FOUNDRY_FIELDS <- c(
   int8 = "BYTE",
   int16 = "SHORT",
   int32 = "INTEGER",
