@@ -4,14 +4,14 @@
 \alias{write_table}
 \title{Writes a data.frame to a Foundry dataset.}
 \usage{
-write_table(data, dataset, branch = NULL)
+write_table(data, dataset_rid, branch_id = NULL)
 }
 \arguments{
 \item{data}{A data.frame or an arrow Table.}
 
-\item{dataset}{A Dataset or a character string representing the RID or dataset path.}
+\item{dataset_rid}{The RID of the Dataset.}
 
-\item{branch}{The dataset branch.}
+\item{branch_id}{The identifier (name) of the Branch.}
 }
 \description{
 Note that types may not be exactly preserved and all types are not supported.

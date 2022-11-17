@@ -14,31 +14,35 @@
 
 #' @keywords internal
 ARROW_TO_FOUNDRY_FIELDS <- c( # nolint
-  int8 = "byte",
-  int16 = "short",
-  int32 = "integer",
-  int64 = "long",
-  float16 = "float",
-  halffloat = "float",
-  float32 = "float",
-  float = "float",
-  float64 = "double",
-  double = "double",
-  boolean = "boolean",
-  bool = "boolean",
-  utf8 = "string",
-  large_utf8 = "string",
-  string = "string",
-  binary = "binary",
-  large_binary = "binary",
-  date32 = "date",
-  timestamp = "timestamp"
+  int8 = "BYTE",
+  int16 = "SHORT",
+  int32 = "INTEGER",
+  int64 = "LONG",
+  float16 = "FLOAT",
+  halffloat = "FLOAT",
+  float32 = "FLOAT",
+  float = "FLOAT",
+  float64 = "DOUBLE",
+  double = "DOUBLE",
+  boolean = "BOOLEAN",
+  bool = "BOOLEAN",
+  utf8 = "STRING",
+  large_utf8 = "STRING",
+  string = "STRING",
+  binary = "BINARY",
+  large_binary = "BINARY",
+  date32 = "DATE",
+  timestamp = "TIMESTAMP"
 )
 
 #' @keywords internal
 arrow_to_foundry_schema <- function(arrow_data) {
-  pypalantir$datasets$types$FoundrySchema(
-    fields = lapply(arrow_data$schema, get_field)
+  list(
+    fieldSchemaList = lapply(arrow_data$schema, get_field),
+    dataFrameReaderClass = "com.palantir.foundry.spark.input.ParquetDataFrameReader",
+    customMetadata = list(
+      format = "parquet"
+    )
   )
 }
 
@@ -48,9 +52,8 @@ get_field <- function(field) {
   if (is.na(foundry_type)) {
     stop("Unsupported column type: ", field$type$name)
   }
-  pypalantir$datasets$types$Field(
+  list(
     name = field$name,
-    field_type = foundry_type,
-    nullable = field$nullable
+    type = foundry_type
   )
 }

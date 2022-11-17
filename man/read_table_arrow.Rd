@@ -4,31 +4,27 @@
 \alias{read_table_arrow}
 \title{Reads a tabular Foundry dataset as an arrow Table.}
 \usage{
-read_table_arrow(dataset, branch = NULL, transaction = NULL, timeout = 150)
+read_table_arrow(
+  dataset_rid,
+  branch_id = NULL,
+  start_transaction_rid = NULL,
+  end_transaction_rid = NULL,
+  columns = NULL,
+  row_limit = NULL
+)
 }
 \arguments{
-\item{dataset}{A Dataset or a character string representing the RID or dataset path.
-The Foundry dataset must be tabular, i.e. have a schema.}
+\item{dataset_rid}{The RID of the Dataset. It must be tabular, i.e. have a schema.}
 
-\item{branch}{The dataset branch.}
+\item{branch_id}{The identifier (name) of the Branch.}
 
-\item{transaction}{The dataset transaction.}
+\item{start_transaction_rid}{The Resource Identifier (RID) of the start Transaction.}
 
-\item{timeout}{The request timeout, in seconds.}
+\item{end_transaction_rid}{The Resource Identifier (RID) of the end Transaction.}
 }
 \value{
 An arrow Table
 }
 \description{
-The `arrow` library must be loaded prior to calling this function.
-}
-\examples{
-\dontrun{
-library(arrow)
-library(dplyr)
-
-df <- read_table_arrow("/path/to/dataset")
-    \%>\% select("column" == "value")
-    \%>\% collect()
-}
+Reads a tabular Foundry dataset as an arrow Table.
 }

@@ -2,7 +2,6 @@
 
 export(download_file)
 export(download_files)
-export(install_palantir)
 export(list_files)
 export(read_table)
 export(read_table_arrow)

@@ -4,15 +4,23 @@
 \alias{read_table}
 \title{Reads a tabular Foundry dataset as data.frame.}
 \usage{
-read_table(dataset, branch = NULL, transaction = NULL)
+read_table(
+  dataset_rid,
+  branch_id = NULL,
+  start_transaction_rid = NULL,
+  end_transaction_rid = NULL,
+  columns = NULL,
+  row_limit = NULL
+)
 }
 \arguments{
-\item{dataset}{A Dataset or a character string representing the RID or dataset path.
-The Foundry dataset must be tabular, i.e. have a schema.}
+\item{dataset_rid}{The RID of the Dataset. It must be tabular, i.e. have a schema.}
 
-\item{branch}{The dataset branch.}
+\item{branch_id}{The identifier (name) of the Branch.}
 
-\item{transaction}{The dataset transaction.}
+\item{start_transaction_rid}{The Resource Identifier (RID) of the start Transaction.}
+
+\item{end_transaction_rid}{The Resource Identifier (RID) of the end Transaction.}
 }
 \value{
 A data.table

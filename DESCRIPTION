@@ -13,26 +13,22 @@ Maintainer: Alexandre Guinaudeau <aguinaudeau@palantir.com>
 Description: Interface to Palantir.
 Encoding: UTF-8
 License: Apache License 2.0 | file LICENSE
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.1
 Depends: 
     R (>= 3.5.0)
 Imports:
     arrow (>= 0.14.0),
     jsonlite,
     httr,
-    reticulate (>= 1.12),
     R6
 Suggests:
     dplyr,
     lintr,
     httptest,
-    rstudioapi,
     testthat (>= 3.0.0),
     withr
 Collate: 
     'api_client.R'
-    'api_response.R'
     'schema.R'
     'datasets.R'
-    'foundry_sql_client.R'
-    'install.R'
+    'datasets_api_client.R'

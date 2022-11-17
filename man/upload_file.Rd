@@ -4,17 +4,17 @@
 \alias{upload_file}
 \title{Upload a local file or folder to a Foundry Dataset.}
 \usage{
-upload_file(local_file, dataset, branch = NULL, txn_type = "UPDATE")
+upload_file(local_file, dataset_rid, branch_id = NULL, transaction_type = NULL)
 }
 \arguments{
 \item{local_file}{A character string representing the location of the file or folder to upload.
 If a folder is provided, all files found recursively in subfolders will be uploaded.}
 
-\item{dataset}{A Dataset or a character string representing the RID or dataset path.}
+\item{dataset_rid}{The RID of the Dataset.}
 
-\item{branch}{The dataset branch.}
+\item{branch_id}{The identifier (name) of the Branch.}
 
-\item{txn_type}{The type of the transaction, must be one of 'UPDATE', 'APPEND', 'SNAPSHOT'.}
+\item{transaction_type}{The type of the Transaction to create.}
 }
 \description{
 Upload a local file or folder to a Foundry Dataset.

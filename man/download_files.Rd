@@ -5,27 +5,24 @@
 \title{Download multiple files from a Foundry Dataset locally.}
 \usage{
 download_files(
-  dataset,
+  dataset_rid,
   target,
-  branch = NULL,
-  transaction = NULL,
-  path = NULL,
-  ...
+  branch_id = NULL,
+  start_transaction_rid = NULL,
+  end_transaction_rid = NULL
 )
 }
 \arguments{
-\item{dataset}{A Dataset or a character string representing the RID or dataset path.}
+\item{dataset_rid}{The RID of the Dataset.}
 
 \item{target}{A character string representing the directory where the file should be downloaded.
-The directory or its parent should exist.}
+The directory or its parent should exist. If it exists, the directory must be empty.}
 
-\item{branch}{The dataset branch.}
+\item{branch_id}{The identifier (name) of the Branch.}
 
-\item{transaction}{The dataset transaction.}
+\item{start_transaction_rid}{The Resource Identifier (RID) of the start Transaction.}
 
-\item{path}{If present, only the file or the files with the specified prefix will be downloaded.}
-
-\item{...}{Extra parameters to pass to the download.file() function.}
+\item{end_transaction_rid}{The Resource Identifier (RID) of the end Transaction.}
 }
 \description{
 Download multiple files from a Foundry Dataset locally.

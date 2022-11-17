@@ -4,16 +4,24 @@
 \alias{list_files}
 \title{Lists the files stored in a Foundry Dataset.}
 \usage{
-list_files(dataset, branch = NULL, transaction = NULL, path = NULL)
+list_files(
+  dataset_rid,
+  branch_id = NULL,
+  start_transaction_rid = NULL,
+  end_transaction_rid = NULL,
+  limit = NULL
+)
 }
 \arguments{
-\item{dataset}{A Dataset or a character string representing the RID or dataset path.}
+\item{dataset_rid}{The RID of the Dataset.}
 
-\item{branch}{The dataset branch.}
+\item{branch_id}{The identifier (name) of the Branch.}
 
-\item{transaction}{The dataset transaction.}
+\item{start_transaction_rid}{The Resource Identifier (RID) of the start Transaction.}
 
-\item{path}{If present, only the file or the files with the specified prefix will be returned.}
+\item{end_transaction_rid}{The Resource Identifier (RID) of the end Transaction.}
+
+\item{limit}{The maximum number of files to return.}
 }
 \value{
 A list of File objects representing the files in the dataset.

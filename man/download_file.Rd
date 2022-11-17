@@ -5,26 +5,29 @@
 \title{Download a Foundry File locally.}
 \usage{
 download_file(
-  dataset,
-  logical_path,
+  dataset_rid,
+  file_path,
   target,
-  branch = NULL,
-  transaction = NULL,
-  ...
+  branch_id = NULL,
+  start_transaction_rid = NULL,
+  end_transaction_rid = NULL,
+  overwrite = FALSE
 )
 }
 \arguments{
-\item{dataset}{A Dataset or a character string representing the RID or dataset path.}
-
-\item{logical_path}{A character string representing the logical path of the file in the Dataset.}
+\item{dataset_rid}{The RID of the Dataset.}
 
 \item{target}{A character string representing the location where the file should be downloaded.}
 
-\item{branch}{The dataset branch.}
+\item{branch_id}{The identifier (name) of the Branch.}
 
-\item{transaction}{The dataset transaction.}
+\item{start_transaction_rid}{The Resource Identifier (RID) of the start Transaction.}
 
-\item{...}{Extra parameters to pass to the download.file() function.}
+\item{end_transaction_rid}{The Resource Identifier (RID) of the end Transaction.}
+
+\item{overwrite}{whether the target should be overwritten.}
+
+\item{logical_path}{A character string representing the logical path of the file in the Dataset.}
 }
 \description{
 Download a Foundry File locally.
