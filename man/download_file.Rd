@@ -17,6 +17,8 @@ download_file(
 \arguments{
 \item{dataset_rid}{The RID of the Dataset.}
 
+\item{file_path}{A character string representing the logical path of the file in the Dataset.}
+
 \item{target}{A character string representing the location where the file should be downloaded.}
 
 \item{branch_id}{The identifier (name) of the Branch.}
@@ -26,8 +28,6 @@ download_file(
 \item{end_transaction_rid}{The Resource Identifier (RID) of the end Transaction.}
 
 \item{overwrite}{whether the target should be overwritten.}
-
-\item{logical_path}{A character string representing the logical path of the file in the Dataset.}
 }
 \description{
 Download a Foundry File locally.

@@ -20,13 +20,13 @@ ApiClient  <- R6::R6Class( # nolint: cyclopcomp_linter
   "ApiClient",
   public = list(
     # base path of all requests
-    base_path,
+    base_path = NULL,
     # user agent in the HTTP request
-    user_agent,
+    user_agent = NULL,
     # default headers in the HTTP request
-    default_headers,
+    default_headers = NULL,
     # Access token
-    access_token,
+    access_token = NULL,
     # Time Out (seconds)
     timeout = NULL,
     # Vector of status codes to retry
