@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: Copy dataframe to ensure arrow metadata is properly set
+  links:
+  - https://github.com/palantir/palantir-r-sdk/pull/15
