@@ -20,7 +20,8 @@ Imports:
     arrow (>= 0.14.0),
     jsonlite,
     httr,
-    R6
+    R6,
+    yaml
 Suggests:
     dplyr,
     lintr,
@@ -29,6 +30,7 @@ Suggests:
     withr
 Collate: 
     'api_client.R'
+    'config.R'
     'schema.R'
     'datasets.R'
     'datasets_api_client.R'

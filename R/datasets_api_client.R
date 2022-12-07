@@ -83,7 +83,9 @@ DatasetsApiService <- R6::R6Class(
       query_params["startTransactionRid"] <- start_transaction_rid
       query_params["endTransactionRid"] <- end_transaction_rid
       query_params["format"] <- format
-      query_params["columns"] <- columns
+      if (!is.null(columns)) {
+        query_params["columns"] <- paste(columns, collapse = ",")
+      }
       query_params["rowLimit"] <- row_limit
 
       response <- self$api_client$call_api(
