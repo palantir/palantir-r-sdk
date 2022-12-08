@@ -164,7 +164,7 @@ DatasetsApiService <- R6::R6Class(
         branch_id = NULL,
         start_transaction_rid = NULL,
         end_transaction_rid = NULL) {
-      url_path <- sprintf("/v1/datasets/%s/files/%s/content", dataset_rid, file_path)
+      url_path <- sprintf("/v1/datasets/%s/files/%s/content", dataset_rid, utils::URLencode(file_path, reserved = TRUE))
       query_params <- list(
         "preview" = TRUE
       )

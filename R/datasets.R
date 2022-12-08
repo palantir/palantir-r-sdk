@@ -98,13 +98,21 @@ datasets.write_table <- function(data, alias) { # nolint: object_name_linter
 #' Lists the files stored in a Foundry Dataset.
 #'
 #' @param alias The alias representing the Dataset.
-#' @param pattern A regex to filter file paths on.
-#' @param path_only If true, return the file paths only, otherwise return lists with all file properties.
 #'
-#' @return The file paths or lists of file properties.
+#' @return The lists of file properties.
 #'
 #' @export
-datasets.list_files <- function(alias, pattern = NULL, path_only = TRUE) { # nolint: object_name_linter
+#'
+#' @examples
+#' \dontrun{
+#' # Get all PDF files in dataset
+#' all_files <- datasets.list_files("my_dataset")
+#' pdf_files <- all_files[sapply(all_files, function(x) grepl(".*\\.pdf", x$path))]
+#'
+#' # Get all file names
+#' file_names <- sapply(all_files, function(x) x$path)
+#' }
+datasets.list_files <- function(alias) { # nolint: object_name_linter
   dataset <- get_alias(alias)
   if (dataset$type != "dataset") {
     stop(sprintf("Expected alias '%s' to be a dataset, found %s", alias, dataset$type))
@@ -116,35 +124,26 @@ datasets.list_files <- function(alias, pattern = NULL, path_only = TRUE) { # nol
                                end_transaction_rid = dataset$end_transaction_rid)
 
   if (is.null(files$nextPageToken)) {
-    all_files <- files$data
-  } else {
-    data <- list(files$data)
-    nfiles <- length(files$data)
-    while (!is.null(files$nextPageToken)) {
-      files <- datasets$list_files(dataset$rid, branch_id = dataset$branch,
-                                   start_transaction_rid = dataset$start_transaction_rid,
-                                   end_transaction_rid = dataset$end_transaction_rid, page_token = files$nextPageToken)
-      data[[length(data) + 1]] <- files$data
-      nfiles <- nfiles + length(files$data)
-    }
-    all_files <- unlist(files$data, recursive = FALSE)
+    return(files$data)
   }
-  if (!is.null(pattern)) {
-    cond <- sapply(all_files, function(x) grepl(pattern, x$path))
-    all_files <- all_files[cond]
+  data <- list(files$data)
+  nfiles <- length(files$data)
+  while (!is.null(files$nextPageToken)) {
+    files <- datasets$list_files(dataset$rid, branch_id = dataset$branch,
+                                 start_transaction_rid = dataset$start_transaction_rid,
+                                 end_transaction_rid = dataset$end_transaction_rid, page_token = files$nextPageToken)
+    data[[length(data) + 1]] <- files$data
+    nfiles <- nfiles + length(files$data)
   }
-  if (path_only) {
-    all_files <- sapply(all_files, function(x) x$path)
-  }
-  return(all_files)
+  return(unlist(files$data, recursive = FALSE))
 }
 
-#' Download a Foundry File locally.
+#' Download Foundry Files locally.
 #'
 #' @param alias The alias representing the Dataset.
-#' @param file_paths The file paths to download from the alias.
+#' @param files The file paths or file properties.
 #'
-#' @return The local file paths where files were downloaded.
+#' @return A named vector with local file paths where files were downloaded.
 #'
 #' @export
 #'
@@ -153,30 +152,21 @@ datasets.list_files <- function(alias, pattern = NULL, path_only = TRUE) { # nol
 #' # download all files in dataset
 #' all_files <- datasets.list_files("my_alias")
 #' downloaded_files <- datasets.download_files("my_alias", all_files)
+#'
+#' # download a single file in dataset
+#' downloaded_file <- datasets.download_files("my_alias", c("my_file.txt"))
 #' }
-datasets.download_files <- function(alias, file_paths) { # nolint: object_name_linter
+datasets.download_files <- function(alias, files) { # nolint: object_name_linter
   dataset <- get_alias(alias)
   if (dataset$type != "dataset") {
     stop(sprintf("Expected alias '%s' to be a dataset, found %s", alias, dataset$type))
   }
 
-  target <- get_config("download.dir", default = NULL)
-  if (is.null(target)) {
-    target <- tempdir()
-  } else {
-    # We need the user's explicit content before writing to the user filesystem
-    consent <- get_config_from_options("palantir.consent")
-    if (is.null(consent) && interactive()) {
-      writeLines(sprintf("The SDK has been configured to download data from Foundry to %s", target))
-      consent <- tolower(trimws(readline("Do you want to proceed? [y/N]: "))) == "y"
-      if (consent) {
-        options("palantir.consent" = TRUE)
-      }
-    }
-    if (consent != TRUE) {
-      stop("Cannot download files as permission to write to the user filesystem has been disabled")
-    }
+  if (class(files) != "character") {
+    files <- sapply(files, function(x) x$path)
   }
+
+  target <- tempdir()
 
   target <- file.path(target, alias)
   if (!dir.exists(target)) {
@@ -196,25 +186,25 @@ datasets.download_files <- function(alias, file_paths) { # nolint: object_name_l
     return(path)
   }
 
-  return(lapply(file_paths, create_parent_and_download))
+  return(sapply(files, create_parent_and_download))
 }
 
 #' Upload a local file or folder to a Foundry Dataset.
 #'
-#' @param local_files The files and folders to upload.
+#' @param files The local files and folders to upload.
 #' If a folder is provided, all files found recursively in subfolders will be uploaded.
 #' @param alias The alias representing the Dataset.
 #'
 #' @return The list of local file paths and corresponding file name in the Foundry dataset.
 #'
 #' @export
-datasets.upload_files <- function(local_files, alias) { # nolint: object_name_linter
+datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
   dataset <- get_alias(alias)
   if (dataset$type != "dataset") {
     stop(sprintf("Expected alias '%s' to be a dataset, found %s", alias, dataset$type))
   }
 
-  missing_files <- sapply(local_files, function(x) !file.exists(x))
+  missing_files <- sapply(files, function(x) !file.exists(x))
   if (length(missing_files) > 0) {
     stop(sprintf("The following local files do not exist: %s", paste(missing_files, collapse = ", ")))
   }
@@ -228,7 +218,7 @@ datasets.upload_files <- function(local_files, alias) { # nolint: object_name_li
       }))
   }
 
-  files_to_upload <- unlist(lapply(local_files, get_file_to_upload), recursive = FALSE)
+  files_to_upload <- unlist(lapply(files, get_file_to_upload), recursive = FALSE)
   files_to_upload <- files_to_upload[!duplicated(files_to_upload)]
 
   # Find duplicates names corresponding to different files
@@ -268,7 +258,7 @@ datasets.upload_files <- function(local_files, alias) { # nolint: object_name_li
       }
     }
   )
-  invisible(files_to_upload)
+  return(files_to_upload)
 }
 
 #' @keywords internal

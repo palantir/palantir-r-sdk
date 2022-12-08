@@ -4,10 +4,10 @@
 \alias{datasets.upload_files}
 \title{Upload a local file or folder to a Foundry Dataset.}
 \usage{
-datasets.upload_files(local_files, alias)
+datasets.upload_files(files, alias)
 }
 \arguments{
-\item{local_files}{The files and folders to upload.
+\item{files}{The local files and folders to upload.
 If a folder is provided, all files found recursively in subfolders will be uploaded.}
 
 \item{alias}{The alias representing the Dataset.}

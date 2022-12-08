@@ -61,7 +61,8 @@ ApiClient  <- R6::R6Class( # nolint: cyclopcomp_linter
       }
 
       message <- tryCatch({
-        jsonlite::toJSON(httr::content(resp, as = "parsed"), pretty = TRUE, auto_unbox = TRUE)
+        reason <- jsonlite::toJSON(httr::content(resp, as = "parsed"), pretty = TRUE, auto_unbox = TRUE)
+        sprintf("%s (HTTP %d).", reason, status)
       },
       error = function(e) {
         reason <- httr::http_status(status)$reason

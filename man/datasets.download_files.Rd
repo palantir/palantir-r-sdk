@@ -2,25 +2,28 @@
 % Please edit documentation in R/datasets.R
 \name{datasets.download_files}
 \alias{datasets.download_files}
-\title{Download a Foundry File locally.}
+\title{Download Foundry Files locally.}
 \usage{
-datasets.download_files(alias, file_paths)
+datasets.download_files(alias, files)
 }
 \arguments{
 \item{alias}{The alias representing the Dataset.}
 
-\item{file_paths}{The file paths to download from the alias.}
+\item{files}{The file paths or file properties.}
 }
 \value{
-The local file paths where files were downloaded.
+A named vector with local file paths where files were downloaded.
 }
 \description{
-Download a Foundry File locally.
+Download Foundry Files locally.
 }
 \examples{
 \dontrun{
 # download all files in dataset
 all_files <- datasets.list_files("my_alias")
 downloaded_files <- datasets.download_files("my_alias", all_files)
+
+# download a single file in dataset
+downloaded_file <- datasets.download_files("my_alias", c("my_file.txt"))
 }
 }
