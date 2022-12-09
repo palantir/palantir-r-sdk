@@ -13,14 +13,20 @@
 #  limitations under the License.
 
 #' @keywords internal
-CONFIG_FILE <- file.path(path.expand("~"), ".foundry", "config")
+CONFIG_DIR <- file.path(path.expand("~"), ".foundry")
 
 #' @keywords internal
-load_config_file <- function(force = FALSE) {
-  if (!file.exists(CONFIG_FILE)) {
+get_config_file <- function(filename) {
+  file.path(CONFIG_DIR, filename)
+}
+
+#' @keywords internal
+load_config_file <- function(filename, force = FALSE) {
+  file <- get_config_file(filename)
+  if (!file.exists(file)) {
     return(NULL)
   }
-  yaml::read_yaml(CONFIG_FILE)
+  yaml::read_yaml(file)
 }
 
 #' @keywords internal
@@ -33,13 +39,8 @@ get_config_from_env <- function(name, default = NULL) {
 }
 
 #' @keywords internal
-get_config_from_options <- function(name, default = NULL) {
-  getOption(name, default = default)
-}
-
-#' @keywords internal
-get_config_from_file <- function(name, default = NULL) {
-  config <- load_config_file()
+get_config_from_file <- function(name, filename = "config", default = NULL) {
+  config <- load_config_file(filename)
   if (is.null(config)) {
     return(default)
   }
@@ -53,14 +54,14 @@ get_config_from_file <- function(name, default = NULL) {
 #' @keywords internal
 get_config <- function(name, default = NULL) {
   # 1. Check for an environment variable
-  environment_variable <- sprintf("PALANTIR_%s", toupper(gsub("\\.", "_", name)))
+  environment_variable <- sprintf("FOUNDRY_%s", toupper(gsub("\\.", "_", name)))
   value <- get_config_from_env(environment_variable)
   if (!is.null(value)) {
     return(value)
   }
   # 2. Check for an option
-  option_variable <- sprintf("palantir.%s", name)
-  value <- get_config_from_options(option_variable)
+  option_variable <- sprintf("foundry.%s", name)
+  value <- getOption(option_variable)
   if (!is.null(value)) {
     return(value)
   }
@@ -80,10 +81,9 @@ get_config <- function(name, default = NULL) {
 
 #' @keywords internal
 get_alias <- function(alias) {
-  aliases <- get_config_from_file("aliases", default = list())
-  value <- aliases[[alias]]
+  value <- get_config_from_file(alias, filename = "aliases", default = NULL)
   if (is.null(value)) {
-    stop(sprintf("No alias '%s' is registered, please add it to %s", alias, CONFIG_FILE))
+    stop(sprintf("No alias '%s' is registered, please add it to %s", alias, get_config_file("aliases")))
   }
   value
 }

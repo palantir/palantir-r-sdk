@@ -1,6 +1,6 @@
 Type: Package
-Package: palantir
-Title: Interface to Palantir
+Package: foundry
+Title: Interface to Palantir Foundry
 Version: 0.5.0
 Authors@R:
     c(person(given = "Alexandre",
@@ -10,7 +10,7 @@ Authors@R:
       person(family = "Palantir Technologies",
              role = c("aut", "cph")))
 Maintainer: Alexandre Guinaudeau <aguinaudeau@palantir.com>
-Description: Interface to Palantir.
+Description: Interface to Palantir Foundry.
 Encoding: UTF-8
 License: Apache License 2.0 | file LICENSE
 RoxygenNote: 7.2.1

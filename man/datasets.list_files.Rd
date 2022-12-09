@@ -17,7 +17,7 @@ Lists the files stored in a Foundry Dataset.
 }
 \examples{
 \dontrun{
-# Get all PDF files in dataset
+# List all PDF files in dataset
 all_files <- datasets.list_files("my_dataset")
 pdf_files <- all_files[sapply(all_files, function(x) grepl(".*\\\\.pdf", x$path))]
 

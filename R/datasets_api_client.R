@@ -181,3 +181,13 @@ DatasetsApiService <- R6::R6Class(
     }
   ),
 )
+
+#' @keywords internal
+get_datasets_client <- function() {
+  version <- toString(utils::packageVersion("foundry"))
+  DatasetsApiService$new(
+    hostname = get_config("hostname"),
+    auth_token = get_config("token"),
+    user_agent = sprintf("foundry-r-sdk/%s", version),
+    timeout = getOption("foundry.timeout", 150))
+}

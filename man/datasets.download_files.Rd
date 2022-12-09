@@ -19,11 +19,12 @@ Download Foundry Files locally.
 }
 \examples{
 \dontrun{
-# download all files in dataset
+# Download all files in dataset
 all_files <- datasets.list_files("my_alias")
 downloaded_files <- datasets.download_files("my_alias", all_files)
+read.csv(downloaded_files[["my_file.csv"]])
 
-# download a single file in dataset
+# Download a single file in dataset
 downloaded_file <- datasets.download_files("my_alias", c("my_file.txt"))
 }
 }

@@ -105,7 +105,7 @@ datasets.write_table <- function(data, alias) { # nolint: object_name_linter
 #'
 #' @examples
 #' \dontrun{
-#' # Get all PDF files in dataset
+#' # List all PDF files in dataset
 #' all_files <- datasets.list_files("my_dataset")
 #' pdf_files <- all_files[sapply(all_files, function(x) grepl(".*\\.pdf", x$path))]
 #'
@@ -149,11 +149,12 @@ datasets.list_files <- function(alias) { # nolint: object_name_linter
 #'
 #' @examples
 #' \dontrun{
-#' # download all files in dataset
+#' # Download all files in dataset
 #' all_files <- datasets.list_files("my_alias")
 #' downloaded_files <- datasets.download_files("my_alias", all_files)
+#' read.csv(downloaded_files[["my_file.csv"]])
 #'
-#' # download a single file in dataset
+#' # Download a single file in dataset
 #' downloaded_file <- datasets.download_files("my_alias", c("my_file.txt"))
 #' }
 datasets.download_files <- function(alias, files) { # nolint: object_name_linter
@@ -259,14 +260,4 @@ datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
     }
   )
   return(files_to_upload)
-}
-
-#' @keywords internal
-get_datasets_client <- function() {
-  version <- toString(utils::packageVersion("palantir"))
-  DatasetsApiService$new(
-    hostname = get_config("hostname"),
-    auth_token = get_config("token"),
-    user_agent = sprintf("palantir-r-sdk/%s", version),
-    timeout = getOption("palantir.timeout", 150))
 }

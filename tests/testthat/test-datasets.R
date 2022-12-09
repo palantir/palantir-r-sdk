@@ -1,5 +1,24 @@
+ALIAS <- "my_dataset"
 DATASET_RID <- "ri.foundry.main.dataset.c26f11c8-cdb3-4f44-9f5d-9816ea1c82da"
 TRANSACTION_RID <- "ri.foundry.main.transaction.00000029-5a26-c1ff-91c5-454d28c9af90"
+
+DATASETS_CLIENT <- R6::R6Class(
+  "DatasetsApiService",
+  public = list(
+    get_file_content = function(dataset_rid, file_path, ...) {
+      list(content = charToRaw(sprintf("Content of %s", file_path)))
+    }
+  )
+)
+
+mock_get_client <- function() {
+  DATASETS_CLIENT$new()
+}
+
+mock_get_alias <- function(alias) {
+  testthat::expect_equal(alias, ALIAS)
+  list(rid = DATASET_RID, type = "dataset")
+}
 
 mock_file <- function(path) {
   list(
@@ -10,73 +29,18 @@ mock_file <- function(path) {
   )
 }
 
-mocked_download_file <- function(dataset_rid, file_path, target, end_transaction_rid = NULL, ...) {
-  testthat::expect_equal(dataset_rid, DATASET_RID)
-  testthat::expect_equal(end_transaction_rid, TRANSACTION_RID)
-  file.create(target)
-}
+test_that("download_files supports downloads by name or file", {
+  with_mock(
+    get_datasets_client = mock_get_client,
+    get_alias = mock_get_alias,
+    {
+      downloads_by_name <- datasets.download_files(ALIAS, c("file1.txt", "file2.txt"))
+      expect_true(all(file.exists(downloads_by_name)))
 
-test_that("download_files works as expected", {
-  mocked_list_files <- function(dataset_rid, ...) {
-    expect_equal(dataset_rid, DATASET_RID)
-    list(
-      mock_file("file1.txt"),
-      mock_file("file2.txt"),
-      mock_file("folder/file3.txt"),
-      mock_file("folder/file4.txt"))
-  }
+      downloads_by_file <- datasets.download_files(ALIAS, list(mock_file("file1.txt"), mock_file("file2.txt")))
+      expect_true(all(file.exists(downloads_by_file)))
 
-  withr::with_tempfile(
-    "dir", {
-      with_mock(
-        download_file = mocked_download_file,
-        list_files = mocked_list_files,
-        {
-          download_files(DATASET_RID, dir)
-          expect_equal(list.files(dir), c("file1.txt", "file2.txt", "folder"))
-          expect_equal(list.files(file.path(dir, "folder")), c("file3.txt", "file4.txt"))
-        }
-      )
-    }
-  )
-})
-
-test_that("download_files throws an error when dataset is empty", {
-  mocked_list_files <- function(dataset_rid, ...) {
-    expect_equal(dataset_rid, DATASET_RID)
-    list()
-  }
-
-  withr::with_tempfile(
-    "dir", {
-      with_mock(
-        download_file = mocked_download_file,
-        list_files = mocked_list_files,
-        {
-          expect_error(download_files(DATASET_RID, dir), "No files found in the dataset.")
-        }
-      )
-    }
-  )
-})
-
-test_that("download_files throws an error when target directory is not empty", {
-  mocked_list_files <- function(dataset_rid, ...) {
-    expect_equal(dataset_rid, DATASET_RID)
-    list(mock_file("file1.txt"), mock_file("file2.txt"))
-  }
-
-  withr::with_tempfile(
-    "dir", {
-      with_mock(
-        download_file = mocked_download_file,
-        list_files = mocked_list_files,
-        {
-          download_files(DATASET_RID, dir)
-          expect_equal(list.files(dir), c("file1.txt", "file2.txt"))
-          expect_error(download_files(DATASET, dir), "Target directory is not empty, files will not be downloaded.")
-        }
-      )
+      expect_equal(downloads_by_name, downloads_by_file)
     }
   )
 })
