@@ -66,3 +66,4 @@ so you can add the following to your `.Rprofile`:
 ```
 Sys.setenv(RETICULATE_PYTHON = reticulate::conda_python())
 ```
+test
