@@ -38,14 +38,12 @@ Authentication tokens serve as a private password and allows a connection to Fou
 
 ### Aliases
 
-To read datasets, aliases must first be registered. Create a YAML file called `~/.foundry/aliases` and define an alias for every dataset you wish to read or write to.
+To read datasets, aliases must first be registered. Create a YAML file called `~/.foundry/aliases.yml` and define an alias for every dataset you wish to read or write to.
 
 ```yaml
 my_dataset:
-    type: dataset
     rid: ri.foundry.main.dataset.31388c03-2854-443e-b6cd-fe51c5908371
 my_dataset_on_branch:
-    type: dataset
     rid: ri.foundry.main.dataset.5db9d133-6c87-4917-b11e-18b095ac4d30
     branch: develop
 ```

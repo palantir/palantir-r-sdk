@@ -17,7 +17,7 @@ mock_get_client <- function() {
 
 mock_get_alias <- function(alias) {
   testthat::expect_equal(alias, ALIAS)
-  list(rid = DATASET_RID, type = "dataset")
+  list(rid = DATASET_RID)
 }
 
 mock_file <- function(path) {

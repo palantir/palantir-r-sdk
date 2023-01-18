@@ -17,18 +17,13 @@ DatasetsApiService <- R6::R6Class(
   "DatasetsApiService",
   public = list(
     api_client = NULL,
-    initialize = function(hostname, auth_token, user_agent, timeout) {
+    initialize = function(auth_token, base_path) {
       self$api_client <- ApiClient$new(
-        base_path = paste0("https://", hostname, "/api"),
-        user_agent = user_agent,
-        access_token = auth_token,
-        # match java remoting
-        # https://github.com/palantir/conjure-java-runtime/tree/3.12.0#quality-of-service-retry-failover-throttling
-        retry_status_codes = c(308, 429, 503),
-        timeout = timeout)
+        base_path = base_path,
+        access_token = auth_token)
     },
     abort_transaction = function(dataset_rid, transaction_rid) {
-      url_path <- sprintf("/v1/datasets/%s/transactions/%s/abort", dataset_rid, transaction_rid)
+      url_path <- sprintf("/%s/transactions/%s/abort", dataset_rid, transaction_rid)
       query_params <- list("preview" = TRUE)
 
       response <- self$api_client$call_api(
@@ -40,7 +35,7 @@ DatasetsApiService <- R6::R6Class(
       httr::content(response, as = "parsed")
     },
     commit_transaction = function(dataset_rid, transaction_rid) {
-      url_path <- sprintf("/v1/datasets/%s/transactions/%s/commit", dataset_rid, transaction_rid)
+      url_path <- sprintf("/%s/transactions/%s/commit", dataset_rid, transaction_rid)
       query_params <- list("preview" = TRUE)
 
       response <- self$api_client$call_api(
@@ -52,14 +47,14 @@ DatasetsApiService <- R6::R6Class(
       httr::content(response, as = "parsed")
     },
     create_transaction = function(dataset_rid, branch_id = NULL, transaction_type = NULL) {
-      url_path <- sprintf("/v1/datasets/%s/transactions", dataset_rid)
+      url_path <- sprintf("/%s/transactions", dataset_rid)
       query_params <- list(
         "preview" = TRUE
       )
       query_params["branchId"] <- branch_id
 
       if (!is.null(transaction_type)) {
-        body <- sprintf("{\"transactionType\":\"%s\"}", transaction_type)
+        body <- jsonlite::toJSON(list(transactionType = transaction_type), auto_unbox = TRUE)
       } else {
         body <- "{}"
       }
@@ -73,9 +68,9 @@ DatasetsApiService <- R6::R6Class(
       self$api_client$stop_for_status(response)
       httr::content(response, as = "parsed")
     },
-    export_table = function(dataset_rid, format, branch_id = NULL, start_transaction_rid = NULL,
+    read_table = function(dataset_rid, format, branch_id = NULL, start_transaction_rid = NULL,
                             end_transaction_rid = NULL, columns = NULL, row_limit = NULL) {
-      url_path <- sprintf("/v1/datasets/%s/exportTable", dataset_rid)
+      url_path <- sprintf("/%s/readTable", dataset_rid)
       query_params <- list(
         "preview" = TRUE
       )
@@ -97,7 +92,7 @@ DatasetsApiService <- R6::R6Class(
     },
     list_files = function(dataset_rid, branch_id = NULL, start_transaction_rid = NULL, end_transaction_rid = NULL,
                           page_size = NULL, page_token = NULL) {
-      url_path <- sprintf("/v1/datasets/%s/files", dataset_rid)
+      url_path <- sprintf("/%s/files", dataset_rid)
       query_params <- list(
         "preview" = TRUE
       )
@@ -116,7 +111,7 @@ DatasetsApiService <- R6::R6Class(
       httr::content(response, as = "parsed")
     },
     put_schema = function(dataset_rid, branch_id = NULL, foundry_schema = NULL) {
-      url_path <- sprintf("/v1/datasets/%s/schema", dataset_rid)
+      url_path <- sprintf("/%s/schema", dataset_rid)
       query_params <- list(
         "preview" = TRUE
       )
@@ -131,19 +126,18 @@ DatasetsApiService <- R6::R6Class(
       self$api_client$stop_for_status(response)
       httr::content(response, as = "parsed")
     },
-    upload_file = function(
+    write_file = function(
         dataset_rid,
         file_path,
         branch_id = NULL,
         transaction_type = NULL,
         transaction_rid = NULL,
         body = NULL) {
-      url_path <- sprintf("/v1/datasets/%s/files:upload", dataset_rid)
+      url_path <- sprintf("/%s/files/%s", dataset_rid, utils::URLencode(file_path, reserved = TRUE))
       header_params <- c("Content-Type" = "application/octet-stream")
       query_params <- list(
         "preview" = TRUE
       )
-      query_params["filePath"] <- file_path
       query_params["branchId"] <- branch_id
       query_params["transactionType"] <- transaction_type
       query_params["transactionRid"] <- transaction_rid
@@ -158,13 +152,13 @@ DatasetsApiService <- R6::R6Class(
       self$api_client$stop_for_status(response)
       httr::content(response, as = "parsed")
     },
-    get_file_content = function(
+    read_file = function(
         dataset_rid,
         file_path,
         branch_id = NULL,
         start_transaction_rid = NULL,
         end_transaction_rid = NULL) {
-      url_path <- sprintf("/v1/datasets/%s/files/%s/content", dataset_rid, utils::URLencode(file_path, reserved = TRUE))
+      url_path <- sprintf("/%s/files/%s", dataset_rid, utils::URLencode(file_path, reserved = TRUE))
       query_params <- list(
         "preview" = TRUE
       )
@@ -178,16 +172,28 @@ DatasetsApiService <- R6::R6Class(
         query_params = query_params)
 
       self$api_client$stop_for_status(response)
+    },
+    # Internal
+    download_files = function(alias, file_paths) {
+      url_path <- sprintf("/%s/files/download", dataset_rid)
+      body <- jsonlite::toJSON(list(files = file_paths))
+      response <- self$api_client$call_api(
+        url = paste0(self$api_client$base_path, url_path),
+        method = "POST",
+        body = body)
+
+      self$api_client$stop_for_status(response)
     }
   ),
 )
 
 #' @keywords internal
 get_datasets_client <- function() {
-  version <- toString(utils::packageVersion("foundry"))
+  base_path <- get_config("datasets.url", NULL)
+  if (is.null(base_path)) {
+    base_path <- paste0("https://", get_config("hostname"), "/api/v1/datasets")
+  }
   DatasetsApiService$new(
-    hostname = get_config("hostname"),
-    auth_token = get_config("token"),
-    user_agent = sprintf("foundry-r-sdk/%s", version),
-    timeout = getOption("foundry.timeout", 150))
+    base_path = base_path,
+    auth_token = get_config("token"))
 }

@@ -22,15 +22,16 @@ ApiClient  <- R6::R6Class( # nolint: cyclopcomp_linter
     # base path of all requests
     base_path = NULL,
     # user agent in the HTTP request
-    user_agent = NULL,
+    user_agent = sprintf("foundry-r-sdk/%s", toString(utils::packageVersion("foundry"))),
     # default headers in the HTTP request
     default_headers = NULL,
     # Access token
     access_token = NULL,
-    # Time Out (seconds)
-    timeout = NULL,
-    # Vector of status codes to retry
-    retry_status_codes = NULL,
+    # Time Out (seconds). By default, match CURL timeout.
+    timeout = getOption("foundry.timeout", 150),
+    # Vector of status codes to retry. By default, match java remoting
+    # https://github.com/palantir/conjure-java-runtime/tree/3.12.0#quality-of-service-retry-failover-throttling
+    retry_status_codes = c(308, 429, 503),
     # Maximum number of retry attempts for the retry status codes
     max_retry_attempts = NULL,
     # constructor

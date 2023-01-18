@@ -35,9 +35,6 @@ datasets.read_table <- function(alias, columns = NULL, row_limit = NULL, format 
     stop(sprintf("Expected 'format' tp be 'arrow' or 'data.frame', found %s", format))
   }
   dataset <- get_alias(alias)
-  if (dataset$type != "dataset") {
-    stop(sprintf("Expected alias '%s' to be a dataset, found %s", alias, dataset$type))
-  }
 
   response <- get_datasets_client()$export_table(dataset_rid = dataset$rid, format = "ARROW",
                                                  branch_id = dataset$branch_id,
@@ -74,9 +71,6 @@ datasets.write_table <- function(data, alias) { # nolint: object_name_linter
     stop("data must be a data.frame or an arrow Table")
   }
   dataset <- get_alias(alias)
-  if (dataset$type != "dataset") {
-    stop(sprintf("Expected alias '%s' to be a dataset, found %s", alias, dataset$type))
-  }
 
   foundry_schema <- arrow_to_foundry_schema(data)
   local_path <- tempfile(fileext = ".parquet")
@@ -114,9 +108,6 @@ datasets.write_table <- function(data, alias) { # nolint: object_name_linter
 #' }
 datasets.list_files <- function(alias) { # nolint: object_name_linter
   dataset <- get_alias(alias)
-  if (dataset$type != "dataset") {
-    stop(sprintf("Expected alias '%s' to be a dataset, found %s", alias, dataset$type))
-  }
 
   datasets <- get_datasets_client()
   files <- datasets$list_files(dataset$rid, branch_id = dataset$branch,
@@ -159,22 +150,22 @@ datasets.list_files <- function(alias) { # nolint: object_name_linter
 #' }
 datasets.download_files <- function(alias, files) { # nolint: object_name_linter
   dataset <- get_alias(alias)
-  if (dataset$type != "dataset") {
-    stop(sprintf("Expected alias '%s' to be a dataset, found %s", alias, dataset$type))
-  }
 
   if (class(files) != "character") {
     files <- sapply(files, function(x) x$path)
   }
 
-  target <- tempdir()
+  datasets <- get_datasets_client()
+  if (is_internal()) {
+    return(datasets$download_files(alias, list(files = files)))
+  }
 
+  target <- tempdir()
   target <- file.path(target, alias)
   if (!dir.exists(target)) {
     dir.create(target)
   }
 
-  datasets <- get_datasets_client()
   create_parent_and_download <- function(file_path) {
     path <- file.path(target, gsub("/", .Platform$file.sep, file_path))
     if (!dir.exists(dirname(path))) {
@@ -201,9 +192,6 @@ datasets.download_files <- function(alias, files) { # nolint: object_name_linter
 #' @export
 datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
   dataset <- get_alias(alias)
-  if (dataset$type != "dataset") {
-    stop(sprintf("Expected alias '%s' to be a dataset, found %s", alias, dataset$type))
-  }
 
   missing_files <- sapply(files, function(x) !file.exists(x))
   if (length(missing_files) > 0) {

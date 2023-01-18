@@ -16,6 +16,9 @@
 CONFIG_DIR <- file.path(path.expand("~"), ".foundry")
 
 #' @keywords internal
+ALIASES_FILE <- "aliases.yml"
+
+#' @keywords internal
 get_config_file <- function(filename) {
   file.path(CONFIG_DIR, filename)
 }
@@ -80,10 +83,18 @@ get_config <- function(name, default = NULL) {
 }
 
 #' @keywords internal
+is_internal <- function() {
+  !is.null(get_config("internal", NULL))
+}
+
+#' @keywords internal
 get_alias <- function(alias) {
-  value <- get_config_from_file(alias, filename = "aliases", default = NULL)
+  if (is_internal()) {
+    return(list(rid = alias))
+  }
+  value <- get_config_from_file(alias, filename = ALIASES_FILE, default = NULL)
   if (is.null(value)) {
-    stop(sprintf("No alias '%s' is registered, please add it to %s", alias, get_config_file("aliases")))
+    stop(sprintf("No alias '%s' is registered, please add it to %s", alias, get_config_file(ALIASES_FILE)))
   }
   value
 }
