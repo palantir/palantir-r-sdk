@@ -31,8 +31,8 @@ mock_file <- function(path) {
 
 test_that("download_files supports downloads by name or file", {
   with_mock(
-    get_datasets_client = mock_get_client,
-    get_alias = mock_get_alias,
+    "foundry:::get_datasets_client" = mock_get_client,
+    "foundry:::get_alias" = mock_get_alias,
     {
       downloads_by_name <- datasets.download_files(ALIAS, c("file1.txt", "file2.txt"))
       expect_true(all(file.exists(downloads_by_name)))
