@@ -25,14 +25,7 @@ Alternatively, you can set the following options:
 * `foundry.token` is a token acquired from the `Tokens` section of Foundry Settings 
 * `foundry.timeout` is the timeout of any HTTPS request made to Foundry
 
-Finally, you can create a YAML file called `~/.foundry/config` to define the hostname and token:
-
-```yaml
-hostname: example.palantirfoundry.com
-token: ...
-```
-
-Configuration will be loaded in the above order: environment variables if present, otherwise options, otherwise config file.
+Configuration will be loaded in the above order: environment variables if present, otherwise options.
  
 Authentication tokens serve as a private password and allows a connection to Foundry data. Keep your token secret and do not share it with anyone else. Do not add a token to a source controlled or shared file.
 
@@ -50,7 +43,7 @@ my_dataset_on_branch:
 
 ## Examples
 
-### Read a tabular Foundry dataset into a data.frame or arrow Table
+### Read a tabular Foundry dataset into a data.frame or Apache Arrow Table
 
 ```R
 library(foundry)
@@ -64,7 +57,7 @@ all_dataset_files <- datasets.list_files("my_dataset")
 downloaded_files <- datasets.download_files("my_dataset", all_dataset_files)
 ```
 
-### Write a data.frame or arrow Table to Foundry
+### Write a data.frame or Apache Arrow Table to Foundry
 
 ```R
 datasets.write_table(df, "my_dataset")

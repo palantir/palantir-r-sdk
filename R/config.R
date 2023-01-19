@@ -19,13 +19,13 @@ CONFIG_DIR <- file.path(path.expand("~"), ".foundry")
 ALIASES_FILE <- "aliases.yml"
 
 #' @keywords internal
-get_config_file <- function(filename) {
+get_yaml_config_file <- function(filename) {
   file.path(CONFIG_DIR, filename)
 }
 
 #' @keywords internal
-load_config_file <- function(filename, force = FALSE) {
-  file <- get_config_file(filename)
+load_yaml_config_file <- function(filename) {
+  file <- get_yaml_config_file(filename)
   if (!file.exists(file)) {
     return(NULL)
   }
@@ -42,8 +42,8 @@ get_config_from_env <- function(name, default = NULL) {
 }
 
 #' @keywords internal
-get_config_from_file <- function(name, filename = "config", default = NULL) {
-  config <- load_config_file(filename)
+get_config_from_yaml_file <- function(name, filename, default = NULL) {
+  config <- load_yaml_config_file(filename)
   if (is.null(config)) {
     return(default)
   }
@@ -68,12 +68,6 @@ get_config <- function(name, default = NULL) {
   if (!is.null(value)) {
     return(value)
   }
-  # 3. Check for a value in the global config file
-  config_variable <- gsub("\\.", "_", name)
-  value <- get_config_from_file(config_variable)
-  if (!is.null(value)) {
-    return(value)
-  }
   # Return default value
   if (!missing(default)) {
     return(default)
@@ -92,9 +86,9 @@ get_alias <- function(alias) {
   if (is_internal()) {
     return(list(rid = alias))
   }
-  value <- get_config_from_file(alias, filename = ALIASES_FILE, default = NULL)
+  value <- get_config_from_yaml_file(alias, filename = ALIASES_FILE, default = NULL)
   if (is.null(value)) {
-    stop(sprintf("No alias '%s' is registered, please add it to %s", alias, get_config_file(ALIASES_FILE)))
+    stop(sprintf("No alias '%s' is registered, please add it to %s", alias, get_yaml_config_file(ALIASES_FILE)))
   }
   value
 }

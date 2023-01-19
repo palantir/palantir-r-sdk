@@ -5,7 +5,7 @@ TRANSACTION_RID <- "ri.foundry.main.transaction.00000029-5a26-c1ff-91c5-454d28c9
 DATASETS_CLIENT <- R6::R6Class(
   "DatasetsApiService",
   public = list(
-    get_file_content = function(dataset_rid, file_path, ...) {
+    read_file = function(dataset_rid, file_path, ...) {
       list(content = charToRaw(sprintf("Content of %s", file_path)))
     }
   )
