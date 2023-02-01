@@ -133,11 +133,12 @@ DatasetsApiService <- R6::R6Class(
         transaction_type = NULL,
         transaction_rid = NULL,
         body = NULL) {
-      url_path <- sprintf("/%s/files/%s", dataset_rid, utils::URLencode(file_path, reserved = TRUE))
+      url_path <- sprintf("/%s/files:upload", dataset_rid)
       header_params <- c("Content-Type" = "application/octet-stream")
       query_params <- list(
         "preview" = TRUE
       )
+      query_params["filePath"] <- file_path
       query_params["branchId"] <- branch_id
       query_params["transactionType"] <- transaction_type
       query_params["transactionRid"] <- transaction_rid
@@ -158,7 +159,7 @@ DatasetsApiService <- R6::R6Class(
         branch_id = NULL,
         start_transaction_rid = NULL,
         end_transaction_rid = NULL) {
-      url_path <- sprintf("/%s/files/%s", dataset_rid, utils::URLencode(file_path, reserved = TRUE))
+      url_path <- sprintf("/%s/files/%s/content", dataset_rid, utils::URLencode(file_path, reserved = TRUE))
       query_params <- list(
         "preview" = TRUE
       )
@@ -183,6 +184,22 @@ DatasetsApiService <- R6::R6Class(
         body = body)
 
       self$api_client$stop_for_status(response)
+    },
+    write_file_internal = function(alias, file_path, body = NULL) {
+      url_path <- sprintf("/%s/files/%s/content", dataset_rid, utils::URLencode(file_path, reserved = TRUE))
+      query_params <- list(
+        "preview" = TRUE
+      )
+
+      response <- self$api_client$call_api(
+        url = paste0(self$api_client$base_path, url_path),
+        method = "PUT",
+        query_params = query_params,
+        header_params = header_params,
+        body = body)
+
+      self$api_client$stop_for_status(response)
+      httr::content(response, as = "parsed")
     }
   ),
 )

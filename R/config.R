@@ -72,8 +72,8 @@ get_config <- function(name, default = NULL) {
   if (!missing(default)) {
     return(default)
   }
-  stop(sprintf("The '%s' environment variable, the '%s' option, or the configuration file property '%s' must be set.",
-               environment_variable, option_variable, config_variable))
+  stop(sprintf("The '%s' environment variable or the '%s' option must be set.",
+               environment_variable, option_variable))
 }
 
 #' @keywords internal

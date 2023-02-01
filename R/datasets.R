@@ -193,7 +193,7 @@ datasets.download_files <- function(alias, files) { # nolint: object_name_linter
 datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
   dataset <- get_alias(alias)
 
-  missing_files <- sapply(files, function(x) !file.exists(x))
+  missing_files <- files[sapply(files, function(x) !file.exists(x))]
   if (length(missing_files) > 0) {
     stop(sprintf("The following local files do not exist: %s", paste(missing_files, collapse = ", ")))
   }
@@ -218,7 +218,21 @@ datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
                  paste(file_names, collapse = ", ")))
   }
 
+  cat(sprintf("Uploading %d file(s) to Foundry...\n", length(files_to_upload)))
+
   datasets <- get_datasets_client()
+
+  if (is_internal()) {
+    upload_file_to_transaction <- function(file_path, file_name) {
+      return(datasets$write_file_internal(alias, file_name,
+                                          body = readBin(file_path, "raw", n = file.info(file_path)$size)))
+    }
+    lapply(files_to_upload, function(file_to_upload) {
+      upload_file_to_transaction(file_to_upload$file, file_to_upload$file_name)
+    })
+    return(files_to_upload)
+  }
+
   if (is.null(dataset$transaction_rid)) {
     txn <- datasets$create_transaction(dataset$rid, branch_id = dataset$branch_id,
                                        transaction_type = dataset$transaction_type)
@@ -228,8 +242,8 @@ datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
   }
 
   upload_file_to_transaction <- function(file_path, file_name) {
-    datasets$write_file(dataset$rid, file_name, transaction_rid = transaction_rid,
-                        body = readBin(file_path, "raw", n = file.info(file_path)$size))
+    return(datasets$write_file(dataset$rid, file_name, transaction_rid = transaction_rid,
+                               body = readBin(file_path, "raw", n = file.info(file_path)$size)))
   }
   tryCatch(
     {
@@ -241,7 +255,7 @@ datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
       }
     },
     error = function(cond) {
-      if (is.null(dataset$transaction_rid)) {
+      if (!is.null(dataset$transaction_rid)) {
         datasets$abort_transaction(dataset$rid, transaction_rid)
         stop("An error occurred while uploading files, aborted the transaction: \n", cond)
       }

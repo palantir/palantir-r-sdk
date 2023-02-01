@@ -35,24 +35,10 @@ ApiClient  <- R6::R6Class( # nolint: cyclopcomp_linter
     # Maximum number of retry attempts for the retry status codes
     max_retry_attempts = NULL,
     # constructor
-    initialize = function(base_path, user_agent, access_token, timeout = NULL, retry_status_codes = NULL,
-                          max_retry_attempts = NULL) {
+    initialize = function(base_path, access_token) {
       self$base_path <- base_path
       self$access_token <- access_token
       self$default_headers["Authorization"] <- sprintf("Bearer %s", access_token)
-      self$`user_agent` <- user_agent
-
-      if (!is.null(timeout)) {
-        self$timeout <- timeout
-      }
-
-      if (!is.null(retry_status_codes)) {
-        self$retry_status_codes <- retry_status_codes
-      }
-
-      if (!is.null(max_retry_attempts)) {
-        self$max_retry_attempts <- max_retry_attempts
-      }
     },
 
     stop_for_status = function(resp) {
