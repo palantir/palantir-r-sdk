@@ -1,46 +1,82 @@
-ALIAS <- "my_dataset"
-DATASET_RID <- "ri.foundry.main.dataset.c26f11c8-cdb3-4f44-9f5d-9816ea1c82da"
-TRANSACTION_RID <- "ri.foundry.main.transaction.00000029-5a26-c1ff-91c5-454d28c9af90"
+#  (c) Copyright 2023 Palantir Technologies Inc. All rights reserved.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
 
-DATASETS_CLIENT <- R6::R6Class(
-  "DatasetsApiService",
-  public = list(
-    read_file = function(dataset_rid, file_path, ...) {
-      list(content = charToRaw(sprintf("Content of %s", file_path)))
-    }
-  )
-)
-
-mock_get_client <- function() {
-  DATASETS_CLIENT$new()
+with_mocks <- function (expr) {
+  withr::with_envvar(
+    list(
+      FOUNDRY_HOSTNAME = "example.palantircloud.com",
+      FOUNDRY_TOKEN = "token"), {
+        withr::with_options(
+          list(foundry.config.dir = ".foundry"), {
+            httptest::with_mock_api({
+              eval.parent(expr)
+            })
+          })
+      })
 }
 
-mock_get_alias <- function(alias) {
-  testthat::expect_equal(alias, ALIAS)
-  list(rid = DATASET_RID)
-}
+with_mocks({
+  test_that("datasets.list_files", {
+    foundry_files <- datasets.list_files("my_input")
+    expect_equal(length(foundry_files), 2)
+    expect_equal(sapply(foundry_files, function(x) x$path), c("file.csv", "reports/file.txt"))
+  })
 
-mock_file <- function(path) {
-  list(
-    path = path,
-    updatedTime = "2022-02-10T12:22:35.532Z",
-    transactionRid = TRANSACTION_RID,
-    sizeBytes = 111102
-  )
-}
+  test_that("datasets.download_files", {
+    local_files <- datasets.download_files("my_input", c("file.csv", "reports/file.txt"))
+    expect_equal(length(local_files), 2)
+    expect_true(file.exists(local_files["file.csv"]))
+    expect_true(file.exists(local_files["reports/file.txt"]))
+    local_file <- local_files["reports/file.txt"]
+    expect_equal(readChar(local_file, file.info(local_file)$size), "file content")
+  })
 
-test_that("download_files supports downloads by name or file", {
-  with_mock(
-    "foundry:::get_datasets_client" = mock_get_client,
-    "foundry:::get_alias" = mock_get_alias,
-    {
-      downloads_by_name <- datasets.download_files(ALIAS, c("file1.txt", "file2.txt"))
-      expect_true(all(file.exists(downloads_by_name)))
+  test_that("datasets.upload_files", {
+    uploaded_files <- datasets.upload_files(c("data", ".foundry/aliases.yml"), "my_output")
+    expect_equal(uploaded_files, list(
+      list(file_name = "file.csv", file = "data/file.csv"),
+      list(file_name = "reports/file.txt", file = "data/reports/file.txt"),
+      list(file_name = "aliases.yml", file = ".foundry/aliases.yml")))
+  })
 
-      downloads_by_file <- datasets.download_files(ALIAS, list(mock_file("file1.txt"), mock_file("file2.txt")))
-      expect_true(all(file.exists(downloads_by_file)))
+  test_that("datasets.upload_files throws if file not found", {
+    expect_error({
+      datasets.upload_files(c("path/to/missing/file.txt"), "my_output")
+    }, "The following local files do not exist: path/to/missing/file.txt")
+  })
 
-      expect_equal(downloads_by_name, downloads_by_file)
-    }
-  )
+  test_that("datasets.read_table", {
+    df <- datasets.read_table("my_input")
+    expect_is(df, "data.frame")
+    expect_equal(nrow(df), 5)
+    expect_equal(ncol(df), 6)
+  })
+
+  test_that("datasets.read_table as arrow", {
+    df <- datasets.read_table("my_input", format = "arrow")
+    expect_is(df, "Table")
+    expect_equal(nrow(df), 5)
+    expect_equal(ncol(df), 6)
+  })
+
+  test_that("datasets.list_files calls internal API", {
+    withr::with_envvar(
+      list(FOUNDRY_DATASETS_URL = "example.palantircloud.com/internal-api",
+           FOUNDRY_INTERNAL = "true"), {
+        foundry_files <- datasets.list_files("my_input")
+        expect_equal(length(foundry_files), 1)
+        expect_equal(sapply(foundry_files, function(x) x$path), c("internal/file.txt"))
+    })
+  })
 })

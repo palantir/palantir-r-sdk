@@ -1,4 +1,4 @@
-#  (c) Copyright 2022 Palantir Technologies Inc. All rights reserved.
+#  (c) Copyright 2023 Palantir Technologies Inc. All rights reserved.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,24 +13,10 @@
 #  limitations under the License.
 
 #' @keywords internal
-CONFIG_DIR <- file.path(path.expand("~"), ".foundry")
+DEFAULT_CONFIG_DIR <- file.path(path.expand("~"), ".foundry")
 
 #' @keywords internal
 ALIASES_FILE <- "aliases.yml"
-
-#' @keywords internal
-get_yaml_config_file <- function(filename) {
-  file.path(CONFIG_DIR, filename)
-}
-
-#' @keywords internal
-load_yaml_config_file <- function(filename) {
-  file <- get_yaml_config_file(filename)
-  if (!file.exists(file)) {
-    return(NULL)
-  }
-  yaml::read_yaml(file)
-}
 
 #' @keywords internal
 get_config_from_env <- function(name, default = NULL) {
@@ -41,19 +27,9 @@ get_config_from_env <- function(name, default = NULL) {
   return(value)
 }
 
-#' @keywords internal
-get_config_from_yaml_file <- function(name, filename, default = NULL) {
-  config <- load_yaml_config_file(filename)
-  if (is.null(config)) {
-    return(default)
-  }
-  value <- config[[name]]
-  if (is.null(value)) {
-    return(default)
-  }
-  return(value)
-}
-
+#' Loads a config from an environment variable with format `FOUNDRY_CONFIG_KEY`
+#' or from an option with format `foundry.config.key`.
+#'
 #' @keywords internal
 get_config <- function(name, default = NULL) {
   # 1. Check for an environment variable
@@ -74,6 +50,33 @@ get_config <- function(name, default = NULL) {
   }
   stop(sprintf("The '%s' environment variable or the '%s' option must be set.",
                environment_variable, option_variable))
+}
+
+#' @keywords internal
+get_config_from_yaml_file <- function(name, filename, default = NULL) {
+  config <- load_yaml_config_file(filename)
+  if (is.null(config)) {
+    return(default)
+  }
+  value <- config[[name]]
+  if (is.null(value)) {
+    return(default)
+  }
+  return(value)
+}
+
+#' @keywords internal
+get_yaml_config_file <- function(filename) {
+  file.path(get_config("config.dir", DEFAULT_CONFIG_DIR), filename)
+}
+
+#' @keywords internal
+load_yaml_config_file <- function(filename) {
+  file <- get_yaml_config_file(filename)
+  if (!file.exists(file)) {
+    return(NULL)
+  }
+  yaml::read_yaml(file)
 }
 
 #' @keywords internal
