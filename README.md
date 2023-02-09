@@ -14,20 +14,20 @@ remotes::install_github("https://github.com/palantir/palantir-r-sdk", ref = "0.5
 
 ### Configuration
 
-Configuration for hostname and an authentication token can be provided by environment variables (`FOUNDRY_HOSTNAME`, `FOUNDRY_TOKEN`)
-
-* `FOUNDRY_HOSTNAME` is the hostname of your instance e.g. `example.palantirfoundry.com`
-* `FOUNDRY_TOKEN` is a token acquired from the `Tokens` section of Foundry Settings 
- 
-Alternatively, you can set the following options:
+Configuration for hostname and an authentication token can be provided using options:
 
 * `foundry.hostname` is the hostname of your instance e.g. `example.palantirfoundry.com`
 * `foundry.token` is a token acquired from the `Tokens` section of Foundry Settings 
-* `foundry.timeout` is the timeout of any HTTPS request made to Foundry
 
-Configuration will be loaded in the above order: environment variables if present, otherwise options.
+Alternatively, you can set the environment variables `FOUNDRY_HOSTNAME` and `FOUNDRY_TOKEN`.
+
+Configuration will be loaded in the following order: options if present, otherwise environment variables.
  
 Authentication tokens serve as a private password and allows a connection to Foundry data. Keep your token secret and do not share it with anyone else. Do not add a token to a source controlled or shared file.
+
+#### Extra configuration options
+
+* `foundry.timeout` is the timeout of HTTPS request made to Foundry, defaults to 150s
 
 ### Aliases
 

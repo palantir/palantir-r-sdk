@@ -2,7 +2,7 @@
 % Please edit documentation in R/datasets.R
 \name{datasets.read_table}
 \alias{datasets.read_table}
-\title{Reads a tabular Foundry dataset as data.frame or an arrow Table.}
+\title{Reads a tabular Foundry dataset as data.frame or an Apache Arrow Table.}
 \usage{
 datasets.read_table(
   alias,

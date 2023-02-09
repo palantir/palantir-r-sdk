@@ -32,15 +32,15 @@ get_config_from_env <- function(name, default = NULL) {
 #'
 #' @keywords internal
 get_config <- function(name, default = NULL) {
-  # 1. Check for an environment variable
-  environment_variable <- sprintf("FOUNDRY_%s", toupper(gsub("\\.", "_", name)))
-  value <- get_config_from_env(environment_variable)
+  # 1. Check for an option
+  option_variable <- sprintf("foundry.%s", name)
+  value <- getOption(option_variable)
   if (!is.null(value)) {
     return(value)
   }
-  # 2. Check for an option
-  option_variable <- sprintf("foundry.%s", name)
-  value <- getOption(option_variable)
+  # 2. Check for an environment variable
+  environment_variable <- sprintf("FOUNDRY_%s", toupper(gsub("\\.", "_", name)))
+  value <- get_config_from_env(environment_variable)
   if (!is.null(value)) {
     return(value)
   }
@@ -48,8 +48,8 @@ get_config <- function(name, default = NULL) {
   if (!missing(default)) {
     return(default)
   }
-  stop(sprintf("The '%s' environment variable or the '%s' option must be set.",
-               environment_variable, option_variable))
+  stop(sprintf("The '%s' option or the '%s' environment variable must be set.",
+               option_variable, environment_variable))
 }
 
 #' @keywords internal

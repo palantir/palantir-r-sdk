@@ -15,7 +15,7 @@
 #' @include schema.R
 NULL
 
-#' Reads a tabular Foundry dataset as data.frame or an arrow Table.
+#' Reads a tabular Foundry dataset as data.frame or an Apache Arrow Table.
 #'
 #' Note that types may not match exactly the Foundry column types.
 #' See https://arrow.apache.org/docs/r/articles/arrow.html for details on type conversions

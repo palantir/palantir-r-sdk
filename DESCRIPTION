@@ -28,8 +28,8 @@ Suggests:
     testthat (>= 3.0.0),
     withr
 Collate: 
-    'api_client.R'
     'config.R'
+    'api_client.R'
     'schema.R'
     'datasets.R'
     'datasets_api_client.R'
