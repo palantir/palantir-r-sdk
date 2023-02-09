@@ -12,7 +12,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-#" @keywords internal
+#' @importFrom jsonlite toJSON
+#' @importFrom R6 R6Class
+#'
+#' @keywords internal
 DatasetsApiService <- R6::R6Class(
   "DatasetsApiService",
   public = list(
@@ -54,7 +57,7 @@ DatasetsApiService <- R6::R6Class(
       query_params["branchId"] <- branch_id
 
       if (!is.null(transaction_type)) {
-        body <- jsonlite::toJSON(list(transactionType = transaction_type), auto_unbox = TRUE)
+        body <- toJSON(list(transactionType = transaction_type), auto_unbox = TRUE)
       } else {
         body <- "{}"
       }
@@ -121,7 +124,7 @@ DatasetsApiService <- R6::R6Class(
         url = paste0(self$api_client$base_path, url_path),
         method = "PUT",
         query_params = query_params,
-        body = jsonlite::toJSON(foundry_schema, auto_unbox = TRUE))
+        body = toJSON(foundry_schema, auto_unbox = TRUE))
 
       self$api_client$stop_for_status(response)
       httr::content(response, as = "parsed")
@@ -177,7 +180,7 @@ DatasetsApiService <- R6::R6Class(
     # Internal
     download_files = function(alias, file_paths) {
       url_path <- sprintf("/%s/files/download", dataset_rid)
-      body <- jsonlite::toJSON(list(files = file_paths))
+      body <- toJSON(list(files = file_paths))
       response <- self$api_client$call_api(
         url = paste0(self$api_client$base_path, url_path),
         method = "POST",

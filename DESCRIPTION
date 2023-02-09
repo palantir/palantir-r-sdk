@@ -23,7 +23,6 @@ Imports:
     R6,
     yaml
 Suggests:
-    dplyr,
     lintr,
     httptest,
     testthat (>= 3.0.0),

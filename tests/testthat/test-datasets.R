@@ -15,10 +15,10 @@
 with_mocks <- function (expr) {
   withr::with_envvar(
     list(
-      FOUNDRY_HOSTNAME = "example.palantircloud.com",
+      FOUNDRY_HOSTNAME = "example.com",
       FOUNDRY_TOKEN = "token"), {
         withr::with_options(
-          list(foundry.config.dir = ".foundry"), {
+          list(foundry.config.dir = "config"), {
             httptest::with_mock_api({
               eval.parent(expr)
             })
@@ -43,11 +43,11 @@ with_mocks({
   })
 
   test_that("datasets.upload_files", {
-    uploaded_files <- datasets.upload_files(c("data", ".foundry/aliases.yml"), "my_output")
+    uploaded_files <- datasets.upload_files(c("data", file.path("config", "aliases.yml")), "my_output")
     expect_equal(uploaded_files, list(
       list(file_name = "file.csv", file = "data/file.csv"),
       list(file_name = "reports/file.txt", file = "data/reports/file.txt"),
-      list(file_name = "aliases.yml", file = ".foundry/aliases.yml")))
+      list(file_name = "aliases.yml", file = "config/aliases.yml")))
   })
 
   test_that("datasets.upload_files throws if file not found", {
@@ -72,7 +72,7 @@ with_mocks({
 
   test_that("datasets.list_files calls internal API", {
     withr::with_envvar(
-      list(FOUNDRY_DATASETS_URL = "example.palantircloud.com/internal-api",
+      list(FOUNDRY_DATASETS_URL = "example.com/internal-api",
            FOUNDRY_INTERNAL = "true"), {
         foundry_files <- datasets.list_files("my_input")
         expect_equal(length(foundry_files), 1)
