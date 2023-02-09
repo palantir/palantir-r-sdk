@@ -64,7 +64,7 @@ datasets.read_table <- function(alias, columns = NULL, row_limit = NULL, format 
 #' @export
 datasets.write_table <- function(data, alias) { # nolint: object_name_linter
   if (inherits(data, "data.frame")) {
-    data <- arrow::arrow_table(data)
+    data <- arrow::Table$create(data)
   }
   if (!inherits(data, "Table")) {
     stop("data must be a data.frame or an arrow Table")
