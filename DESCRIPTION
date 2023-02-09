@@ -17,7 +17,7 @@ RoxygenNote: 7.2.1
 Depends: 
     R (>= 3.5.0)
 Imports:
-    arrow (>= 0.14.0),
+    arrow (>= 6.0.0),
     jsonlite,
     httr,
     R6,
