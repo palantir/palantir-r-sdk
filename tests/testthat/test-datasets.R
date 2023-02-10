@@ -70,9 +70,9 @@ with_mocks({
     expect_equal(ncol(df), 6)
   })
 
-  test_that("datasets.list_files calls internal API", {
+  test_that("datasets.list_files calls internal API when FOUNDRY_INTERNAL is set", {
     withr::with_envvar(
-      list(FOUNDRY_DATASETS_URL = "example.com/internal-api",
+      list(FOUNDRY_INTERNAL_DATASETS_URL = "example.com/internal-api",
            FOUNDRY_INTERNAL = "true"), {
         foundry_files <- datasets.list_files("my_input")
         expect_equal(length(foundry_files), 1)

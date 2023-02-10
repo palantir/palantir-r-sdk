@@ -81,7 +81,7 @@ load_yaml_config_file <- function(filename) {
 
 #' @keywords internal
 is_internal <- function() {
-  !is.null(get_config("internal", NULL))
+  get_config("internal", "false") == "true"
 }
 
 #' @keywords internal

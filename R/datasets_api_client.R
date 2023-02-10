@@ -209,7 +209,7 @@ DatasetsApiService <- R6::R6Class(
 
 #' @keywords internal
 get_datasets_client <- function() {
-  base_path <- get_config("datasets.url", NULL)
+  base_path <- get_config("internal.datasets.url", NULL)
   if (is.null(base_path)) {
     base_path <- paste0("https://", get_config("hostname"), "/api/v1/datasets")
   }

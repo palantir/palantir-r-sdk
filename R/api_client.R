@@ -34,12 +34,12 @@ ApiClient  <- R6Class( # nolint: cyclopcomp_linter
     # Access token
     access_token = NULL,
     # Time Out (seconds). By default, match CURL timeout.
-    timeout = get_config("timeout", 150),
+    timeout = as.numeric(get_config("requests.timeout", 150)),
     # Vector of status codes to retry. By default, match java remoting
     # https://github.com/palantir/conjure-java-runtime/tree/3.12.0#quality-of-service-retry-failover-throttling
     retry_status_codes = c(308, 429, 503),
     # Maximum number of retry attempts for the retry status codes
-    max_retry_attempts = NULL,
+    max_retry_attempts = 4,
     # constructor
     initialize = function(base_path, access_token) {
       self$base_path <- base_path
