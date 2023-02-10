@@ -9,7 +9,7 @@ This SDK is incubating and subject to change.
 Install the library from Github:
 ```R
 install.packages("remotes")
-remotes::install_github("https://github.com/palantir/palantir-r-sdk", ref = "0.5.0")
+remotes::install_github("https://github.com/palantir/palantir-r-sdk", ref = "0.6.0")
 ```
 
 ### Configuration
@@ -27,7 +27,8 @@ Authentication tokens serve as a private password and allows a connection to Fou
 
 #### Extra configuration options
 
-* `foundry.timeout` is the timeout of HTTPS request made to Foundry, defaults to 150s
+* `foundry.config_dir` is the directory where configuration files are stored, defaults to `~/.foundry`
+* `foundry.requests.timeout` is the timeout of HTTPS requests made to Foundry, defaults to 150s
 
 ### Aliases
 

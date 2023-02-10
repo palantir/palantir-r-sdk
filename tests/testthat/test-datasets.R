@@ -18,7 +18,7 @@ with_mocks <- function (expr) {
       FOUNDRY_HOSTNAME = "example.com",
       FOUNDRY_TOKEN = "token"), {
         withr::with_options(
-          list(foundry.config.dir = "config"), {
+          list(foundry.config_dir = "config"), {
             httptest::with_mock_api({
               eval.parent(expr)
             })
@@ -70,10 +70,11 @@ with_mocks({
     expect_equal(ncol(df), 6)
   })
 
-  test_that("datasets.list_files calls internal API when FOUNDRY_INTERNAL is set", {
+  test_that("datasets.list_files calls custom API when runtime is set", {
     withr::with_envvar(
-      list(FOUNDRY_INTERNAL_DATASETS_URL = "example.com/internal-api",
-           FOUNDRY_INTERNAL = "true"), {
+      list(FOUNDRY_RESOLVE_ALIASES = "false",
+           FOUNDRY_RUNTIME = "data-sidecar",
+           FOUNDRY_DATASETS_CONTEXT_PATH = "/internal-api"), {
         foundry_files <- datasets.list_files("my_input")
         expect_equal(length(foundry_files), 1)
         expect_equal(sapply(foundry_files, function(x) x$path), c("internal/file.txt"))

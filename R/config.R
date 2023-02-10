@@ -67,7 +67,7 @@ get_config_from_yaml_file <- function(name, filename, default = NULL) {
 
 #' @keywords internal
 get_yaml_config_file <- function(filename) {
-  file.path(get_config("config.dir", DEFAULT_CONFIG_DIR), filename)
+  file.path(get_config("config_dir", DEFAULT_CONFIG_DIR), filename)
 }
 
 #' @keywords internal
@@ -80,13 +80,13 @@ load_yaml_config_file <- function(filename) {
 }
 
 #' @keywords internal
-is_internal <- function() {
-  get_config("internal", "false") == "true"
+should_resolve_aliases <- function() {
+  get_config("resolve_aliases", "true") == "true"
 }
 
 #' @keywords internal
 get_alias <- function(alias) {
-  if (is_internal()) {
+  if (!should_resolve_aliases()) {
     return(list(rid = alias))
   }
   value <- get_config_from_yaml_file(alias, filename = ALIASES_FILE, default = NULL)

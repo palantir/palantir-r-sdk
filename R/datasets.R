@@ -155,7 +155,7 @@ datasets.download_files <- function(alias, files) { # nolint: object_name_linter
   }
 
   datasets <- get_datasets_client()
-  if (is_internal()) {
+  if (get_config("runtime", "") == "data-sidecar") {
     return(datasets$download_files(alias, list(files = files)))
   }
 
@@ -221,7 +221,7 @@ datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
 
   datasets <- get_datasets_client()
 
-  if (is_internal()) {
+  if (get_config("runtime", "") == "data-sidecar") {
     upload_file_to_transaction <- function(file_path, file_name) {
       return(datasets$write_file_internal(alias, file_name,
                                           body = readBin(file_path, "raw", n = file.info(file_path)$size)))
