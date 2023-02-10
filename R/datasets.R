@@ -20,7 +20,6 @@ NULL
 #' Note that types may not match exactly the Foundry column types.
 #' See https://arrow.apache.org/docs/r/articles/arrow.html for details on type conversions
 #' from an arrow Table to a data.frame.
-#' For more advanced usage, use `read_table_arrow`.
 #'
 #' @param alias The alias representing the Dataset. It must be tabular, i.e. have a schema.
 #' @param columns The subset of columns to retrieve.
@@ -56,7 +55,7 @@ datasets.read_table <- function(alias, columns = NULL, row_limit = NULL, format 
 #'
 #' Note that types may not be exactly preserved and all types are not supported.
 #' See https://arrow.apache.org/docs/r/articles/arrow.html for details on type conversions
-#' from a data.frame to an arrow Table. Use arrow::arrow_table to use more granular types.
+#' from a data.frame to an arrow Table. Use arrow::Table$create to use more granular types.
 #'
 #' @param data A data.frame or an arrow Table.
 #' @param alias The alias representing the Dataset.
@@ -91,6 +90,7 @@ datasets.write_table <- function(data, alias) { # nolint: object_name_linter
 #' Lists the files stored in a Foundry Dataset.
 #'
 #' @param alias The alias representing the Dataset.
+#' @param regex A regex used to filter files by path.
 #'
 #' @return The lists of file properties.
 #'
@@ -99,13 +99,16 @@ datasets.write_table <- function(data, alias) { # nolint: object_name_linter
 #' @examples
 #' \dontrun{
 #' # List all PDF files in dataset
-#' all_files <- datasets.list_files("my_dataset")
-#' pdf_files <- all_files[sapply(all_files, function(x) grepl(".*\\.pdf", x$path))]
+#' all_files <- datasets.list_files("my_dataset", regex=".*\\.pdf")
 #'
 #' # Get all file names
 #' file_names <- sapply(all_files, function(x) x$path)
 #' }
-datasets.list_files <- function(alias) { # nolint: object_name_linter
+datasets.list_files <- function(alias, regex=".*") { # nolint: object_name_linter
+  if (!missing(regex)) {
+    # Match the regex against the full file path
+    regex <- paste0("^", regex, "$")
+  }
   dataset <- get_alias(alias)
 
   datasets <- get_datasets_client()
@@ -113,17 +116,23 @@ datasets.list_files <- function(alias) { # nolint: object_name_linter
                                start_transaction_rid = dataset$start_transaction_rid,
                                end_transaction_rid = dataset$end_transaction_rid)
 
-  if (is.null(files$nextPageToken)) {
-    return(files$data)
+  page <- files$data
+  if (!missing(regex)) {
+    page <- page[sapply(page, function(x) grepl(regex, x$path))]
   }
-  data <- list(files$data)
-  nfiles <- length(files$data)
+  if (is.null(files$nextPageToken)) {
+    return(page)
+  }
+  data <- list(page)
   while (!is.null(files$nextPageToken)) {
     files <- datasets$list_files(dataset$rid, branch_id = dataset$branch,
                                  start_transaction_rid = dataset$start_transaction_rid,
                                  end_transaction_rid = dataset$end_transaction_rid, page_token = files$nextPageToken)
-    data[[length(data) + 1]] <- files$data
-    nfiles <- nfiles + length(files$data)
+    page <- files$data
+    if (!missing(regex)) {
+      page <- page[sapply(page, function(x) grepl(regex, x$path))]
+    }
+    data[[length(data) + 1]] <- page
   }
   return(unlist(files$data, recursive = FALSE))
 }

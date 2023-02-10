@@ -2,8 +2,6 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-lightgrey.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Autorelease](https://img.shields.io/badge/Perform%20an-Autorelease-success.svg)](https://autorelease.general.dmz.palantir.tech/palantir/palantir-r-sdk)
 
-This SDK is incubating and subject to change.
-
 ## Setup
 
 Install the library from Github:

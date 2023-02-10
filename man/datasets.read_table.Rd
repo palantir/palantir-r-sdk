@@ -27,5 +27,4 @@ A data.table or an arrow Table
 Note that types may not match exactly the Foundry column types.
 See https://arrow.apache.org/docs/r/articles/arrow.html for details on type conversions
 from an arrow Table to a data.frame.
-For more advanced usage, use `read_table_arrow`.
 }

@@ -1,6 +1,6 @@
 # Adapted from code generated with httptest::start_capturing
 structure(list(
-  url = "https://example.palantircloud.com/api/v1/datasets/ri.foundry.main.dataset.00000000-0000-0000-0000-000000000000/files/file.txt/content?preview=TRUE",
+  url = "https://example.com/api/v1/datasets/input/files/file.txt/content?preview=TRUE",
   status_code = 200L,
   headers = structure(
     list(`content-length` = "12", `content-type` = "application/octet-stream"),

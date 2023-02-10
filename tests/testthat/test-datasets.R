@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-with_mocks <- function (expr) {
+with_mocks <- function(expr) {
   withr::with_envvar(
     list(
       FOUNDRY_HOSTNAME = "example.com",

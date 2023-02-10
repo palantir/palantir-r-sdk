@@ -14,5 +14,5 @@ datasets.write_table(data, alias)
 \description{
 Note that types may not be exactly preserved and all types are not supported.
 See https://arrow.apache.org/docs/r/articles/arrow.html for details on type conversions
-from a data.frame to an arrow Table. Use arrow::arrow_table to use more granular types.
+from a data.frame to an arrow Table. Use arrow::Table$create to use more granular types.
 }

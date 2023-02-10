@@ -4,10 +4,12 @@
 \alias{datasets.list_files}
 \title{Lists the files stored in a Foundry Dataset.}
 \usage{
-datasets.list_files(alias)
+datasets.list_files(alias, regex = ".*")
 }
 \arguments{
 \item{alias}{The alias representing the Dataset.}
+
+\item{regex}{A regex used to filter files by path.}
 }
 \value{
 The lists of file properties.
@@ -18,8 +20,7 @@ Lists the files stored in a Foundry Dataset.
 \examples{
 \dontrun{
 # List all PDF files in dataset
-all_files <- datasets.list_files("my_dataset")
-pdf_files <- all_files[sapply(all_files, function(x) grepl(".*\\\\.pdf", x$path))]
+all_files <- datasets.list_files("my_dataset", regex=".*\\\\.pdf")
 
 # Get all file names
 file_names <- sapply(all_files, function(x) x$path)
