@@ -43,11 +43,10 @@ with_mocks({
   })
 
   test_that("datasets.upload_files", {
-    uploaded_files <- datasets.upload_files(c("data", file.path("config", "aliases.yml")), "my_output")
+    uploaded_files <- datasets.upload_files(c("data", file.path("data", "file.csv")), "my_output")
     expect_equal(uploaded_files, list(
       `data/file.csv` = "file.csv",
-      `data/reports/file.txt` = "reports/file.txt",
-      `config/aliases.yml` = "aliases.yml"))
+      `data/reports/file.txt` = "reports/file.txt"))
   })
 
   test_that("datasets.upload_files throws if file not found", {
