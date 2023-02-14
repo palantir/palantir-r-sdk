@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 #' @include api_client.R
+#' @include config.R
 NULL
 
 #' @keywords internal
