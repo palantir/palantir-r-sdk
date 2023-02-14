@@ -1,0 +1,15 @@
+type: break
+break:
+  description: |-
+    Migrating the SDK to use the Foundry API.
+
+    Improvements:
+    * Removed the dependency on `reticulate`
+    * Added the ability to import a subset of rows or columns in `read_table`
+    * Added support for configuration through `options`
+
+    Breaking changes:
+    * All endpoints now require an alias configured in `~/.foundry/aliases.yml`, RIDs and Compass paths are not allowed anymore
+    * Renamed the functions to names consistent with other SDKs
+  links:
+  - https://github.com/palantir/palantir-r-sdk/pull/16
