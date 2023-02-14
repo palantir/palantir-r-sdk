@@ -75,4 +75,15 @@ jobs:
         shell: Rscript {0}
   
   all-jobs:
+    runs-on: ubuntu-latest
+
+    name: All Jobs
+
     needs: [ 'check', 'lint' ]
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+    - name: Workflow succeeded
+      run: echo "All jobs succeeded"
