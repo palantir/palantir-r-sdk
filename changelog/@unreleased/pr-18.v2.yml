@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: Validate CRAN package on R-devel
+  links:
+  - https://github.com/palantir/palantir-r-sdk/pull/18

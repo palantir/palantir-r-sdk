@@ -1,7 +1,7 @@
 Type: Package
 Package: foundry
 Title: Interface to Palantir Foundry
-Version: 0.6.0
+Version: 0.7.0
 Authors@R:
     c(person(given = "Alexandre",
              family = "Guinaudeau",
@@ -33,3 +33,4 @@ Collate:
     'schema.R'
     'datasets_api_client.R'
     'datasets.R'
+    'utils.R'
