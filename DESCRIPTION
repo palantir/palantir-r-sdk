@@ -31,5 +31,5 @@ Collate:
     'config.R'
     'api_client.R'
     'schema.R'
-    'datasets.R'
     'datasets_api_client.R'
+    'datasets.R'

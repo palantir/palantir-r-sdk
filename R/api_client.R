@@ -18,11 +18,8 @@
 #' @include config.R
 NULL
 
-#' @importFrom jsonlite toJSON
-#' @importFrom R6 R6Class
-#'
 #' @keywords internal
-ApiClient  <- R6Class( # nolint: cyclopcomp_linter
+ApiClient  <- R6::R6Class( # nolint: cyclopcomp_linter
   "ApiClient",
   public = list(
     # base path of all requests
@@ -54,7 +51,7 @@ ApiClient  <- R6Class( # nolint: cyclopcomp_linter
       }
 
       message <- tryCatch({
-        reason <- toJSON(httr::content(resp, as = "parsed"), pretty = TRUE, auto_unbox = TRUE)
+        reason <- jsonlite::toJSON(httr::content(resp, as = "parsed"), pretty = TRUE, auto_unbox = TRUE)
         sprintf("%s (HTTP %d).", reason, status)
       },
       error = function(e) {
