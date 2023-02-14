@@ -33,3 +33,4 @@ Collate:
     'schema.R'
     'datasets_api_client.R'
     'datasets.R'
+    'utils.R'

@@ -82,7 +82,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'macOS-latest', 'windows-latest', 'ubuntu-latest' ]
-        r: [ '3.6', '4.1', 'devel' ]
+        r: [ '3.6', '4.1' ]
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
