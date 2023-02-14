@@ -234,8 +234,6 @@ datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
                  paste(file_names, collapse = ", ")))
   }
 
-  cat(sprintf("Uploading %d file(s) to Foundry...\n", length(files_to_upload)))
-
   datasets <- get_datasets_client()
 
   if (get_config("runtime", "") == FOUNDRY_DATA_SIDECAR_RUNTIME) {
