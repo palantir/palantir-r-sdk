@@ -177,9 +177,9 @@ DatasetsApiService <- R6::R6Class(
 
       self$api_client$stop_for_status(response)
     },
-    # Internal
-    download_files = function(alias, file_paths) {
-      url_path <- sprintf("/%s/files/download", dataset_rid)
+    # Foundry Data-Sidecar
+    foundry_data_sidecar_download_files = function(alias, file_paths) {
+      url_path <- sprintf("/%s/files/download", alias)
       body <- toJSON(list(files = file_paths))
       response <- self$api_client$call_api(
         url = paste0(self$api_client$base_path, url_path),
@@ -187,22 +187,17 @@ DatasetsApiService <- R6::R6Class(
         body = body)
 
       self$api_client$stop_for_status(response)
+      httr::content(response, as = "parsed")
     },
-    write_file_internal = function(alias, file_path, body = NULL) {
-      url_path <- sprintf("/%s/files/%s/content", dataset_rid, utils::URLencode(file_path, reserved = TRUE))
-      query_params <- list(
-        "preview" = TRUE
-      )
+    foundry_data_sidecar_write_file = function(alias, file_path, body = NULL) {
+      url_path <- sprintf("/%s/files/%s/content", alias, utils::URLencode(file_path, reserved = TRUE))
 
       response <- self$api_client$call_api(
         url = paste0(self$api_client$base_path, url_path),
         method = "PUT",
-        query_params = query_params,
-        header_params = header_params,
         body = body)
 
       self$api_client$stop_for_status(response)
-      httr::content(response, as = "parsed")
     }
   ),
 )

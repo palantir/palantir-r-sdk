@@ -15,18 +15,21 @@
 #' @include schema.R
 NULL
 
+#' @keywords internal
+FOUNDRY_DATA_SIDECAR_RUNTIME <- "foundry-data-sidecar"
+
 #' Reads a tabular Foundry dataset as data.frame or an Apache Arrow Table.
 #'
 #' Note that types may not match exactly the Foundry column types.
 #' See https://arrow.apache.org/docs/r/articles/arrow.html for details on type conversions
 #' from an arrow Table to a data.frame.
 #'
-#' @param alias The alias representing the Dataset. It must be tabular, i.e. have a schema.
+#' @param alias The alias representing the Dataset. The Dataset must be tabular, i.e. have a schema.
 #' @param columns The subset of columns to retrieve.
 #' @param row_limit The maximum number of rows to retrieve.
 #' @param format The output format, can be 'arrow' or 'data.frame'.
 #'
-#' @return A data.table or an arrow Table
+#' @return A data.table or an Arrow Table
 #'
 #' @export
 datasets.read_table <- function(alias, columns = NULL, row_limit = NULL, format = "data.frame") { # nolint: object_name_linter
@@ -142,19 +145,20 @@ datasets.list_files <- function(alias, regex=".*") { # nolint: object_name_linte
 #' @param alias The alias representing the Dataset.
 #' @param files The file paths or file properties.
 #'
-#' @return A named vector with local file paths where files were downloaded.
+#' @return A list mapping Foundry Dataset files to the local file paths where files were downloaded.
 #'
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' # Download all files in dataset
-#' all_files <- datasets.list_files("my_alias")
-#' downloaded_files <- datasets.download_files("my_alias", all_files)
-#' read.csv(downloaded_files[["my_file.csv"]])
-#'
 #' # Download a single file in dataset
-#' downloaded_file <- datasets.download_files("my_alias", c("my_file.txt"))
+#' downloaded_file <- datasets.download_files("my_alias", c("dir/my_file.csv"))
+#' read.csv(downloaded_file$`dir/my_file.csv`)
+#'
+#' # Extract text from all PDF files in dataset
+#' pdf_files <- datasets.list_files("my_alias", regex = ".*\\.pdf")
+#' downloaded_files <- datasets.download_files("my_alias", pdf_files)
+#' contents <- lapply(downloaded_files, pdftools::pdf_text)
 #' }
 datasets.download_files <- function(alias, files) { # nolint: object_name_linter
   dataset <- get_alias(alias)
@@ -164,8 +168,8 @@ datasets.download_files <- function(alias, files) { # nolint: object_name_linter
   }
 
   datasets <- get_datasets_client()
-  if (get_config("runtime", "") == "data-sidecar") {
-    return(datasets$download_files(alias, list(files = files)))
+  if (get_config("runtime", "") == FOUNDRY_DATA_SIDECAR_RUNTIME) {
+    return(datasets$foundry_data_sidecar_download_files(alias, list(files = files))$files)
   }
 
   target <- tempdir()
@@ -186,7 +190,9 @@ datasets.download_files <- function(alias, files) { # nolint: object_name_linter
     return(path)
   }
 
-  return(sapply(files, create_parent_and_download))
+  downloads <- sapply(files, create_parent_and_download)
+  downloads <- split(downloads, names(downloads))
+  return(lapply(downloads, unname))
 }
 
 #' Upload a local file or folder to a Foundry Dataset.
@@ -195,7 +201,7 @@ datasets.download_files <- function(alias, files) { # nolint: object_name_linter
 #' If a folder is provided, all files found recursively in subfolders will be uploaded.
 #' @param alias The alias representing the Dataset.
 #'
-#' @return The list of local file paths and corresponding file name in the Foundry dataset.
+#' @return A list mapping local file paths to the corresponding Foundry Dataset file.
 #'
 #' @export
 datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
@@ -230,44 +236,48 @@ datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
 
   datasets <- get_datasets_client()
 
-  if (get_config("runtime", "") == "data-sidecar") {
+  if (get_config("runtime", "") == FOUNDRY_DATA_SIDECAR_RUNTIME) {
     upload_file_to_transaction <- function(file_path, file_name) {
-      return(datasets$write_file_internal(alias, file_name,
-                                          body = readBin(file_path, "raw", n = file.info(file_path)$size)))
+      datasets$foundry_data_sidecar_write_file(alias, file_name,
+                                               body = readBin(file_path, "raw", n = file.info(file_path)$size))
     }
     lapply(files_to_upload, function(file_to_upload) {
       upload_file_to_transaction(file_to_upload$file, file_to_upload$file_name)
     })
-    return(files_to_upload)
-  }
-
-  if (is.null(dataset$transaction_rid)) {
-    txn <- datasets$create_transaction(dataset$rid, branch_id = dataset$branch_id,
-                                       transaction_type = dataset$transaction_type)
-    transaction_rid <- txn$rid
   } else {
-    transaction_rid <- dataset$transaction_rid
-  }
+    is_transaction_managed <- is.null(dataset$transaction_rid)
 
-  upload_file_to_transaction <- function(file_path, file_name) {
-    return(datasets$write_file(dataset$rid, file_name, transaction_rid = transaction_rid,
-                               body = readBin(file_path, "raw", n = file.info(file_path)$size)))
-  }
-  tryCatch(
-    {
-      lapply(files_to_upload, function(file_to_upload) {
-        upload_file_to_transaction(file_to_upload$file, file_to_upload$file_name)
-      })
-      if (is.null(dataset$transaction_rid)) {
-        datasets$commit_transaction(dataset$rid, transaction_rid)
-      }
-    },
-    error = function(cond) {
-      if (!is.null(dataset$transaction_rid)) {
-        datasets$abort_transaction(dataset$rid, transaction_rid)
-        stop("An error occurred while uploading files, aborted the transaction: \n", cond)
-      }
+    if (is_transaction_managed) {
+      txn <- datasets$create_transaction(dataset$rid, branch_id = dataset$branch_id,
+                                         transaction_type = dataset$transaction_type)
+      transaction_rid <- txn$rid
+    } else {
+      transaction_rid <- dataset$transaction_rid
     }
-  )
-  return(files_to_upload)
+
+    upload_file_to_transaction <- function(file_path, file_name) {
+      datasets$write_file(dataset$rid, file_name, transaction_rid = transaction_rid,
+                          body = readBin(file_path, "raw", n = file.info(file_path)$size))
+    }
+    tryCatch(
+      {
+        lapply(files_to_upload, function(file_to_upload) {
+          upload_file_to_transaction(file_to_upload$file, file_to_upload$file_name)
+        })
+        if (is_transaction_managed) {
+          datasets$commit_transaction(dataset$rid, transaction_rid)
+        }
+      },
+      error = function(cond) {
+        if (is_transaction_managed) {
+          datasets$abort_transaction(dataset$rid, transaction_rid)
+          stop("An error occurred while uploading files, aborted the transaction: \n", cond)
+        }
+        warning("An error occurred while uploading files to the provided transaction.\n")
+      }
+    )
+  }
+  # Return a named list instead of an array of mappings
+  names(files_to_upload) <- lapply(files_to_upload, function(x) x$file)
+  return(lapply(files_to_upload, function(x) x$file_name))
 }

@@ -36,18 +36,18 @@ with_mocks({
   test_that("datasets.download_files", {
     local_files <- datasets.download_files("my_input", c("file.csv", "reports/file.txt"))
     expect_equal(length(local_files), 2)
-    expect_true(file.exists(local_files["file.csv"]))
-    expect_true(file.exists(local_files["reports/file.txt"]))
-    local_file <- local_files["reports/file.txt"]
+    expect_true(file.exists(local_files$file.csv))
+    expect_true(file.exists(local_files$`reports/file.txt`))
+    local_file <- local_files$`reports/file.txt`
     expect_equal(readChar(local_file, file.info(local_file)$size), "file content")
   })
 
   test_that("datasets.upload_files", {
     uploaded_files <- datasets.upload_files(c("data", file.path("config", "aliases.yml")), "my_output")
     expect_equal(uploaded_files, list(
-      list(file_name = "file.csv", file = "data/file.csv"),
-      list(file_name = "reports/file.txt", file = "data/reports/file.txt"),
-      list(file_name = "aliases.yml", file = "config/aliases.yml")))
+      `data/file.csv` = "file.csv",
+      `data/reports/file.txt` = "reports/file.txt",
+      `config/aliases.yml` = "aliases.yml"))
   })
 
   test_that("datasets.upload_files throws if file not found", {
@@ -70,14 +70,36 @@ with_mocks({
     expect_equal(ncol(df), 6)
   })
 
-  test_that("datasets.list_files calls custom API when runtime is set", {
+  test_that("datasets.list_files calls custom context path when runtime is set", {
     withr::with_envvar(
       list(FOUNDRY_RESOLVE_ALIASES = "false",
-           FOUNDRY_RUNTIME = "data-sidecar",
+           FOUNDRY_RUNTIME = "foundry-data-sidecar",
            FOUNDRY_DATASETS_CONTEXT_PATH = "/internal-api"), {
         foundry_files <- datasets.list_files("my_input")
         expect_equal(length(foundry_files), 1)
         expect_equal(sapply(foundry_files, function(x) x$path), c("internal/file.txt"))
     })
+  })
+
+  test_that("datasets.download_files calls custom API when runtime is set", {
+    withr::with_envvar(
+      list(FOUNDRY_RESOLVE_ALIASES = "false",
+           FOUNDRY_RUNTIME = "foundry-data-sidecar",
+           FOUNDRY_DATASETS_CONTEXT_PATH = "/internal-api"), {
+             local_files <- datasets.download_files("my_input", c("file.csv", "reports/file.txt"))
+             expect_equal(length(local_files), 2)
+             expect_equal(local_files$file.csv, "/tmp/file.csv")
+             expect_equal(local_files$`reports/file.txt`, "/tmp/reports/file.txt")
+           })
+  })
+
+  test_that("datasets.upload_files calls custom API when runtime is set", {
+    withr::with_envvar(
+      list(FOUNDRY_RESOLVE_ALIASES = "false",
+           FOUNDRY_RUNTIME = "foundry-data-sidecar",
+           FOUNDRY_DATASETS_CONTEXT_PATH = "/internal-api"), {
+             uploaded_files <- datasets.upload_files(file.path("config", "aliases.yml"), "my_output")
+             expect_equal(uploaded_files, list(`config/aliases.yml` = "aliases.yml"))
+           })
   })
 })

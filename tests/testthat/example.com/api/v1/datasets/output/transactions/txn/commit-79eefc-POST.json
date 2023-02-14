@@ -1,0 +1,8 @@
+{
+  // Short fake rid to avoid file paths over 100 bytes which breaks CRAN checks
+  "rid": "txn",
+  "transactionType": "SNAPSHOT",
+  "status": "COMMITTED",
+  "createdTime": "2022-10-10T12:23:11.152Z",
+  "closedTime": "2022-10-10T12:23:13.152Z"
+}

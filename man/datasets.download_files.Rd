@@ -12,19 +12,20 @@ datasets.download_files(alias, files)
 \item{files}{The file paths or file properties.}
 }
 \value{
-A named vector with local file paths where files were downloaded.
+A list mapping Foundry Dataset files to the local file paths where files were downloaded.
 }
 \description{
 Download Foundry Files locally.
 }
 \examples{
 \dontrun{
-# Download all files in dataset
-all_files <- datasets.list_files("my_alias")
-downloaded_files <- datasets.download_files("my_alias", all_files)
-read.csv(downloaded_files[["my_file.csv"]])
-
 # Download a single file in dataset
-downloaded_file <- datasets.download_files("my_alias", c("my_file.txt"))
+downloaded_file <- datasets.download_files("my_alias", c("dir/my_file.csv"))
+read.csv(downloaded_file$`dir/my_file.csv`)
+
+# Extract text from all PDF files in dataset
+pdf_files <- datasets.list_files("my_alias", regex = ".*\\\\.pdf")
+downloaded_files <- datasets.download_files("my_alias", pdf_files)
+contents <- lapply(downloaded_files, pdftools::pdf_text)
 }
 }

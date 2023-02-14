@@ -12,7 +12,7 @@ datasets.read_table(
 )
 }
 \arguments{
-\item{alias}{The alias representing the Dataset. It must be tabular, i.e. have a schema.}
+\item{alias}{The alias representing the Dataset. The Dataset must be tabular, i.e. have a schema.}
 
 \item{columns}{The subset of columns to retrieve.}
 
@@ -21,7 +21,7 @@ datasets.read_table(
 \item{format}{The output format, can be 'arrow' or 'data.frame'.}
 }
 \value{
-A data.table or an arrow Table
+A data.table or an Arrow Table
 }
 \description{
 Note that types may not match exactly the Foundry column types.

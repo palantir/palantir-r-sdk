@@ -13,7 +13,7 @@ If a folder is provided, all files found recursively in subfolders will be uploa
 \item{alias}{The alias representing the Dataset.}
 }
 \value{
-The list of local file paths and corresponding file name in the Foundry dataset.
+A list mapping local file paths to the corresponding Foundry Dataset file.
 }
 \description{
 Upload a local file or folder to a Foundry Dataset.

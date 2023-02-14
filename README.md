@@ -1,5 +1,5 @@
 # Palantir R SDK
-[![License](https://img.shields.io/badge/License-Apache%202.0-lightgrey.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License](https://img.shields.io/badge/License-Apache%202.0-lightgrey.svg)](https://opensource.org/license/apache2-0-php/)
 [![Autorelease](https://img.shields.io/badge/Perform%20an-Autorelease-success.svg)](https://autorelease.general.dmz.palantir.tech/palantir/palantir-r-sdk)
 
 ## Setup
