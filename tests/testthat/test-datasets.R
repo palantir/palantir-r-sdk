@@ -98,8 +98,8 @@ with_mocks({
       list(FOUNDRY_RESOLVE_ALIASES = "false",
            FOUNDRY_RUNTIME = "foundry-data-sidecar",
            FOUNDRY_DATASETS_CONTEXT_PATH = "/internal-api"), {
-             uploaded_files <- datasets.upload_files(file.path("config", "aliases.yml"), "my_output")
-             expect_equal(uploaded_files, list(`config/aliases.yml` = "aliases.yml"))
+             uploaded_files <- datasets.upload_files(file.path("data", "file.csv"), "my_output")
+             expect_equal(uploaded_files, list(`data/file.csv` = "file.csv"))
            })
   })
 })
