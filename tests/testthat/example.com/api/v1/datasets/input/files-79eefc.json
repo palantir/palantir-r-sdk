@@ -1,0 +1,16 @@
+{
+    "data": [
+        {
+            "path": "file.csv",
+            "transactionRid": "ri.foundry.main.transaction.00000000-0000-0000-0000-000000000001",
+            "sizeBytes": "51916",
+            "updatedTime": "2023-01-24T15:23:57.416Z"
+        },
+        {
+            "path": "reports/file.txt",
+            "transactionRid": "ri.foundry.main.transaction.00000000-0000-0000-0000-000000000001",
+            "sizeBytes": "1283141",
+            "updatedTime": "2023-01-24T15:23:56.713Z"
+        }
+    ]
+}

@@ -1,68 +1,70 @@
 # Palantir R SDK
-[![License](https://img.shields.io/badge/License-Apache%202.0-lightgrey.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License](https://img.shields.io/badge/License-Apache%202.0-lightgrey.svg)](https://opensource.org/license/apache2-0-php/)
 [![Autorelease](https://img.shields.io/badge/Perform%20an-Autorelease-success.svg)](https://autorelease.general.dmz.palantir.tech/palantir/palantir-r-sdk)
-
-This SDK is incubating and subject to change.
 
 ## Setup
 
 Install the library from Github:
 ```R
 install.packages("remotes")
-remotes::install_github("https://github.com/palantir/palantir-r-sdk", ref = "0.5.0")
+remotes::install_github("https://github.com/palantir/palantir-r-sdk", ref = "0.6.0")
 ```
 
-This library relies on [palantir-python-sdk](https://github.com/palantir/palantir-python-sdk), so Python must be installed on the system.
-The following command can be used to install the Python SDK and required dependencies:
-```
-palantir::install_palantir()
-```
+### Configuration
 
-Configuration for hostname and an authentication token are provided by environment variables (`PALANTIR_HOSTNAME`, `PALANTIR_TOKEN`)
+Configuration for hostname and an authentication token can be provided using options:
 
-* `PALANTIR_HOSTNAME` is the hostname of your instance e.g. `example.palantirfoundry.com`
-* `PALANTIR_TOKEN` is a token acquired from the `Tokens` section of Foundry Settings 
+* `foundry.hostname` is the hostname of your instance e.g. `example.palantirfoundry.com`
+* `foundry.token` is a token acquired from the `Tokens` section of Foundry Settings 
+
+Alternatively, you can set the environment variables `FOUNDRY_HOSTNAME` and `FOUNDRY_TOKEN`.
+
+Configuration will be loaded in the following order: options if present, otherwise environment variables.
  
 Authentication tokens serve as a private password and allows a connection to Foundry data. Keep your token secret and do not share it with anyone else. Do not add a token to a source controlled or shared file.
 
+#### Extra configuration options
+
+* `foundry.config_dir` is the directory where configuration files are stored, defaults to `~/.foundry`
+* `foundry.requests.timeout` is the timeout of HTTPS requests made to Foundry, defaults to 150s
+
+### Aliases
+
+To read datasets, aliases must first be registered. Create a YAML file called `~/.foundry/aliases.yml` and define an alias for every dataset you wish to read or write to.
+
+```yaml
+my_dataset:
+    rid: ri.foundry.main.dataset.31388c03-2854-443e-b6cd-fe51c5908371
+my_dataset_on_branch:
+    rid: ri.foundry.main.dataset.5db9d133-6c87-4917-b11e-18b095ac4d30
+    branch: develop
+```
+
 ## Examples
 
-### Read a tabular Foundry dataset into a data.frame
+### Read a tabular Foundry dataset into a data.frame or Apache Arrow Table
 
 ```R
-library(palantir)
-df <- read_table("/Path/to/dataset")
+library(foundry)
+df <- datasets.read_table("my_dataset")
 ```
 
 ### Download raw files from a Dataset
 
 ```R
-download_files("/Path/to/dataset", file.path("~", "Downloads", "example"))
+all_dataset_files <- datasets.list_files("my_dataset")
+downloaded_files <- datasets.download_files("my_dataset", all_dataset_files)
 ```
 
-### Write a data.frame to Foundry
-
-```R
-write_table(df, "/Path/to/dataset")
-```
-
-### Upload a local file or folder to a Dataset
+### Write a data.frame or Apache Arrow Table to Foundry
 
 ```R
-upload_file(file.path("~", "Downloads", "example"), "/Path/to/dataset")
+datasets.write_table(df, "my_dataset")
 ```
 
-## Troubleshooting
-You may run into the following error, in particular after restarting your session:
+### Upload local files or folders to a Dataset
+
+```R
+datasets.upload_files(file.path("~", "Downloads", "example"), "my_dataset")
 ```
- Error in on_error(result) : 
-  Use palantir::install_palantir() to install palantir
-  ModuleNotFoundError: No module named 'palantir'
-```
-This indicates `reticulate` is not set up to use the right version of python.
-You can set it with the environment variable `RETICULATE_PYTHON`.
-By default, `palantir::install_palantir()` will install the python module in the default conda environment
-so you can add the following to your `.Rprofile`:
-```
-Sys.setenv(RETICULATE_PYTHON = reticulate::conda_python())
-```
+

@@ -1,1 +1,3 @@
-linters: with_defaults(line_length_linter(120), open_curly_linter = NULL)
+linters: linters_with_defaults(
+  line_length_linter(120),
+  object_name_linter(c("snake_case", "CamelCase", "SNAKE_CASE")))

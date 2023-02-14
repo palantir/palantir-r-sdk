@@ -1,4 +1,4 @@
-#  (c) Copyright 2022 Palantir Technologies Inc. All rights reserved.
+#  (c) Copyright 2023 Palantir Technologies Inc. All rights reserved.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,256 +12,272 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+#' @include config.R
+#' @include datasets_api_client.R
 #' @include schema.R
 NULL
 
-#' Reads a tabular Foundry dataset as data.frame.
+#' @keywords internal
+FOUNDRY_DATA_SIDECAR_RUNTIME <- "foundry-data-sidecar"
+
+#' Reads a tabular Foundry dataset as data.frame or an Apache Arrow Table.
 #'
 #' Note that types may not match exactly the Foundry column types.
 #' See https://arrow.apache.org/docs/r/articles/arrow.html for details on type conversions
 #' from an arrow Table to a data.frame.
-#' For more advanced usage, use `read_table_arrow`.
 #'
-#' @param dataset A Dataset or a character string representing the RID or dataset path.
-#' The Foundry dataset must be tabular, i.e. have a schema.
-#' @param branch The dataset branch.
-#' @param transaction The dataset transaction.
+#' @param alias The alias representing the Dataset. The Dataset must be tabular, i.e. have a schema.
+#' @param columns The subset of columns to retrieve.
+#' @param row_limit The maximum number of rows to retrieve.
+#' @param format The output format, can be 'arrow' or 'data.frame'.
 #'
-#' @return A data.table
+#' @return A data.table or an Arrow Table
 #'
 #' @export
-read_table <- function(dataset, branch = NULL, transaction = NULL) {
-  df <- read_table_arrow(dataset, branch = branch, transaction = transaction)$to_data_frame()
-  head(df, n=nrow(df))
-}
+datasets.read_table <- function(alias, columns = NULL, row_limit = NULL, format = "data.frame") { # nolint: object_name_linter
+  if (!format %in% c("arrow", "data.frame")) {
+    stop(sprintf("Expected 'format' to be 'arrow' or 'data.frame', found %s", format))
+  }
+  dataset <- get_alias(alias)
 
-#' Reads a tabular Foundry dataset as an arrow Table.
-#'
-#' The `arrow` library must be loaded prior to calling this function.
-#'
-#' @param dataset A Dataset or a character string representing the RID or dataset path.
-#' The Foundry dataset must be tabular, i.e. have a schema.
-#' @param branch The dataset branch.
-#' @param transaction The dataset transaction.
-#' @param timeout The request timeout, in seconds.
-#'
-#' @return An arrow Table
-#'
-#' @export
-#' @examples
-#' \dontrun{
-#' library(arrow)
-#' library(dplyr)
-#'
-#' df <- read_table_arrow("/path/to/dataset")
-#'     %>% select("column" == "value")
-#'     %>% collect()
-#' }
-read_table_arrow <- function(dataset, branch = NULL, transaction = NULL, timeout = 150) {
-  dataset <- get_dataset_view(dataset, branch = branch, transaction = transaction)
-  context <- get_context()
-  sql_query <- SqlQueryService$new(
-    hostname = context$hostname,
-    auth_token = context$auth_token,
-    user_agent = get_user_agent(),
-    timeout = timeout) # The default timeout in curl is 150s
-  sql_query$read_dataset(dataset$locator)
+  response <- get_datasets_client()$read_table(dataset_rid = dataset$rid, format = "ARROW",
+                                               branch_id = dataset$branch_id,
+                                               start_transaction_rid = dataset$start_transaction_rid,
+                                               end_transaction_rid = dataset$end_transaction_rid,
+                                               columns = columns, row_limit = row_limit)
+
+  stream <- arrow::BufferReader$create(httr::content(response, "raw"))
+  reader <- arrow::RecordBatchStreamReader$create(stream)
+  arrow_table <- reader$read_table()
+
+  if (format == "arrow") {
+    return(arrow_table)
+  }
+  arrow_table$to_data_frame()
 }
 
 #' Writes a data.frame to a Foundry dataset.
 #'
 #' Note that types may not be exactly preserved and all types are not supported.
 #' See https://arrow.apache.org/docs/r/articles/arrow.html for details on type conversions
-#' from a data.frame to an arrow Table. Use arrow::arrow_table to use more granular types.
+#' from a data.frame to an arrow Table. Use arrow::Table$create to use more granular types.
 #'
 #' @param data A data.frame or an arrow Table.
-#' @param dataset A Dataset or a character string representing the RID or dataset path.
-#' @param branch The dataset branch.
+#' @param alias The alias representing the Dataset.
 #'
 #' @export
-write_table <- function(data, dataset, branch = NULL) {
-  dataset <- get_dataset_view(dataset, branch = branch, create = TRUE)
-
+datasets.write_table <- function(data, alias) { # nolint: object_name_linter
   if (inherits(data, "data.frame")) {
-    data <- arrow::arrow_table(data)
+    data <- arrow::Table$create(data)
   }
   if (!inherits(data, "Table")) {
     stop("data must be a data.frame or an arrow Table")
   }
+  dataset <- get_alias(alias)
 
   foundry_schema <- arrow_to_foundry_schema(data)
-  target <- tempfile(fileext = ".parquet")
-  arrow::write_parquet(data, target)
-  upload_file(target, dataset, txn_type = "SNAPSHOT")
-  file.remove(target)
+  local_path <- tempfile(fileext = ".parquet")
+  arrow::write_parquet(data, local_path)
 
-  dataset$client$put_schema(dataset, foundry_schema)
+  datasets <- get_datasets_client()
+  datasets$write_file(
+    dataset$rid,
+    "dataframe.parquet",
+    branch_id = dataset$branch,
+    transaction_type = "SNAPSHOT",
+    body = readBin(local_path, "raw", n = file.info(local_path)$size))
+  file.remove(local_path)
+
+  datasets$put_schema(dataset$rid, branch_id = dataset$branch, foundry_schema = foundry_schema)
   invisible(NULL)
 }
 
 #' Lists the files stored in a Foundry Dataset.
 #'
-#' @param dataset A Dataset or a character string representing the RID or dataset path.
-#' @param branch The dataset branch.
-#' @param transaction The dataset transaction.
-#' @param path If present, only the file or the files with the specified prefix will be returned.
+#' @param alias The alias representing the Dataset.
+#' @param regex A regex used to filter files by path.
 #'
-#' @return A list of File objects representing the files in the dataset.
+#' @return The lists of file properties.
 #'
 #' @export
-list_files <- function(dataset, branch = NULL, transaction = NULL, path = NULL) {
-  dataset <- get_dataset_view(dataset, branch = branch, transaction = transaction)
-  response <- reticulate::iterate(dataset$list_files(path))
-  response
+#'
+#' @examples
+#' \dontrun{
+#' # List all PDF files in dataset
+#' all_files <- datasets.list_files("my_dataset", regex=".*\\.pdf")
+#'
+#' # Get all file names
+#' file_names <- sapply(all_files, function(x) x$path)
+#' }
+datasets.list_files <- function(alias, regex=".*") { # nolint: object_name_linter
+  if (!missing(regex)) {
+    # Match the regex against the full file path
+    regex <- paste0("^", regex, "$")
+  }
+  dataset <- get_alias(alias)
+
+  datasets <- get_datasets_client()
+  files <- datasets$list_files(dataset$rid, branch_id = dataset$branch,
+                               start_transaction_rid = dataset$start_transaction_rid,
+                               end_transaction_rid = dataset$end_transaction_rid)
+
+  page <- files$data
+  if (!missing(regex)) {
+    page <- page[sapply(page, function(x) grepl(regex, x$path))]
+  }
+  if (is.null(files$nextPageToken)) {
+    return(page)
+  }
+  data <- list(page)
+  while (!is.null(files$nextPageToken)) {
+    files <- datasets$list_files(dataset$rid, branch_id = dataset$branch,
+                                 start_transaction_rid = dataset$start_transaction_rid,
+                                 end_transaction_rid = dataset$end_transaction_rid, page_token = files$nextPageToken)
+    page <- files$data
+    if (!missing(regex)) {
+      page <- page[sapply(page, function(x) grepl(regex, x$path))]
+    }
+    data[[length(data) + 1]] <- page
+  }
+  return(unlist(files$data, recursive = FALSE))
 }
 
-#' Download a Foundry File locally.
+#' Download Foundry Files locally.
 #'
-#' @param dataset A Dataset or a character string representing the RID or dataset path.
-#' @param logical_path A character string representing the logical path of the file in the Dataset.
-#' @param target A character string representing the location where the file should be downloaded.
-#' @param branch The dataset branch.
-#' @param transaction The dataset transaction.
-#' @param ... Extra parameters to pass to the download.file() function.
+#' @param alias The alias representing the Dataset.
+#' @param files The file paths or file properties.
+#'
+#' @return A list mapping Foundry Dataset files to the local file paths where files were downloaded.
 #'
 #' @export
-download_file <- function(dataset, logical_path, target, branch = NULL, transaction = NULL, ...) {
-  if (!is.character(logical_path)) {
-    stop("logical_path should be a character string")
-  }
-  dataset <- get_dataset_view(dataset, branch = branch, transaction = transaction)
-  utils::download.file(
-    get_file_in_txn_view_url(dataset, logical_path),
-    target,
-    headers = c("Authorization" = paste("Bearer", dataset$client$ctx$auth_token)),
-    ...)
-}
+#'
+#' @examples
+#' \dontrun{
+#' # Download a single file in dataset
+#' downloaded_file <- datasets.download_files("my_alias", c("dir/my_file.csv"))
+#' read.csv(downloaded_file$`dir/my_file.csv`)
+#'
+#' # Extract text from all PDF files in dataset
+#' pdf_files <- datasets.list_files("my_alias", regex = ".*\\.pdf")
+#' downloaded_files <- datasets.download_files("my_alias", pdf_files)
+#' contents <- lapply(downloaded_files, pdftools::pdf_text)
+#' }
+datasets.download_files <- function(alias, files) { # nolint: object_name_linter
+  dataset <- get_alias(alias)
 
-#' Download multiple files from a Foundry Dataset locally.
-#'
-#' @param dataset A Dataset or a character string representing the RID or dataset path.
-#' @param target A character string representing the directory where the file should be downloaded.
-#' The directory or its parent should exist.
-#' @param branch The dataset branch.
-#' @param transaction The dataset transaction.
-#' @param path If present, only the file or the files with the specified prefix will be downloaded.
-#' @param ... Extra parameters to pass to the download.file() function.
-#'
-#' @export
-download_files <- function(dataset, target, branch = NULL, transaction = NULL, path = NULL, ...) {
-  dataset <- get_dataset_view(dataset, branch = branch, transaction = transaction)
-  files <- list_files(dataset, path)
-  if (length(files) == 0) {
-    stop("No files found in the dataset.")
+  if (!inherits(files, "character")) {
+    files <- sapply(files, function(x) x$path)
   }
+
+  datasets <- get_datasets_client()
+  if (get_config("runtime", "") == FOUNDRY_DATA_SIDECAR_RUNTIME) {
+    return(datasets$foundry_data_sidecar_download_files(alias, list(files = files))$files)
+  }
+
+  target <- tempdir()
+  target <- file.path(target, alias)
   if (!dir.exists(target)) {
     dir.create(target)
-  } else if (length(list.files(target)) != 0) {
-    stop("Target directory is not empty, files will not be downloaded.")
   }
-  if (!is.null(path) && !endsWith(path, "/")) {
-    path <- paste0(path, "/")
-  }
-  create_parent_and_download <- function(file_) {
-    file_path <- reticulate::py_to_r(file_$path)
-    if (!is.null(path)) {
-      file_path <- substr(file_path, nchar(path) + 1, nchar(file_path))
+
+  create_parent_and_download <- function(file_path) {
+    path <- file.path(target, gsub("/", .Platform$file.sep, file_path))
+    if (!dir.exists(dirname(path))) {
+      dir.create(dirname(path), recursive = TRUE)
     }
-    path_ <- paste(target, file_path, sep = "/")
-    if (!dir.exists(dirname(path_))) {
-      dir.create(dirname(path_), recursive = TRUE)
-    }
-    download_file(dataset, file_path, path_, ...)
+    file <- datasets$read_file(dataset$rid, file_path, branch_id = dataset$branch,
+                               start_transaction_rid = dataset$start_transaction_rid,
+                               end_transaction_rid = dataset$end_transaction_rid)
+    writeBin(file$content, path)
+    return(path)
   }
-  cat(paste0("Downloading ", length(files), " files to local directory ", target, "\n"))
-  lapply(files, create_parent_and_download)
-  invisible(NULL)
+
+  downloads <- sapply(files, create_parent_and_download)
+  downloads <- split(downloads, names(downloads))
+  return(lapply(downloads, unname))
 }
 
 #' Upload a local file or folder to a Foundry Dataset.
 #'
-#' @param local_file A character string representing the location of the file or folder to upload.
+#' @param files The local files and folders to upload.
 #' If a folder is provided, all files found recursively in subfolders will be uploaded.
-#' @param dataset A Dataset or a character string representing the RID or dataset path.
-#' @param branch The dataset branch.
-#' @param txn_type The type of the transaction, must be one of 'UPDATE', 'APPEND', 'SNAPSHOT'.
+#' @param alias The alias representing the Dataset.
+#'
+#' @return A list mapping local file paths to the corresponding Foundry Dataset file.
 #'
 #' @export
-upload_file <- function(local_file, dataset, branch = NULL, txn_type = "UPDATE") {
-  if (!file.exists(local_file)) {
-    stop("The file to upload does not exist: ", local_file)
+datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
+  dataset <- get_alias(alias)
+
+  missing_files <- files[sapply(files, function(x) !file.exists(x))]
+  if (length(missing_files) > 0) {
+    stop(sprintf("The following local files do not exist: %s", paste(missing_files, collapse = ", ")))
   }
-  if (!txn_type %in% c("UPDATE", "APPEND", "SNAPSHOT")) {
-    stop("The transaction type must be one of 'UPDATE', 'APPEND', 'SNAPSHOT'")
-  }
-  dataset <- get_dataset_view(dataset, branch = branch, create = TRUE)
-  txn <- dataset$start_transaction(txn_type = txn_type)
-  tryCatch(
-    {
-      if (dir.exists(local_file)) {
-        lapply(list.files(local_file, recursive = TRUE), function(path_) {
-          upload_file_internal(txn, file.path(local_file, path_), path_)
-        })
-      } else {
-        upload_file_internal(txn, local_file, basename(local_file))
-      }
-      txn$commit()
-    },
-    error = function(cond) {
-      txn$abort()
-      stop("An error occurred while uploading files, aborted the transaction: \n", cond)
+
+  get_file_to_upload <- function(local_file) {
+    if (!dir.exists(local_file)) {
+      return(list(list(file_name = basename(local_file), file = local_file)))
     }
-  )
-  invisible(NULL)
-}
+    return(lapply(list.files(local_file, recursive = TRUE), function(path) {
+        list(file_name = gsub(.Platform$file.sep, "/", path), file = file.path(local_file, path))
+      }))
+  }
 
-#' @keywords internal
-upload_file_internal <- function(txn, local_path, logical_path) {
-  txn$write(logical_path, readBin(local_path, "raw", n = file.info(local_path)$size))
-}
+  files_to_upload <- unlist(lapply(files, get_file_to_upload), recursive = FALSE)
+  files_to_upload <- files_to_upload[!duplicated(files_to_upload)]
 
-#' @keywords internal
-get_context <- function() {
-  pypalantir$core$context(hostname = Sys.getenv("PALANTIR_HOSTNAME"), token = Sys.getenv("PALANTIR_TOKEN"))
-}
+  # Find duplicates names corresponding to different files
+  file_names <- lapply(files_to_upload, function(file_to_upload) file_to_upload$file_name)
+  duplicate_file_names <- file_names[duplicated(file_names)]
+  if (length(duplicate_file_names) > 1) {
+    stop(sprintf("Multiple files would be uploaded to the same location, aborting: %s",
+                 paste(file_names, collapse = ", ")))
+  }
 
-#' @keywords internal
-get_user_agent <- function() {
-  user_agent <- reticulate::py_to_r(pypalantir$core$rpc$USER_AGENT)
-  user_agent <- lapply(user_agent, paste, collapse = "/")
-  paste(user_agent, collapse = " ")
-}
+  datasets <- get_datasets_client()
 
-#' @keywords internal
-get_dataset_view <- function(dataset, branch = NULL, transaction = NULL, create = FALSE) {
-  if (is.character(dataset)) {
-    if (is.null(transaction)) {
-      transaction_range <- NULL
+  if (get_config("runtime", "") == FOUNDRY_DATA_SIDECAR_RUNTIME) {
+    upload_file_to_transaction <- function(file_path, file_name) {
+      datasets$foundry_data_sidecar_write_file(alias, file_name,
+                                               body = readBin(file_path, "raw", n = file.info(file_path)$size))
+    }
+    lapply(files_to_upload, function(file_to_upload) {
+      upload_file_to_transaction(file_to_upload$file, file_to_upload$file_name)
+    })
+  } else {
+    is_transaction_managed <- is.null(dataset$transaction_rid)
+
+    if (is_transaction_managed) {
+      txn <- datasets$create_transaction(dataset$rid, branch_id = dataset$branch_id,
+                                         transaction_type = dataset$transaction_type)
+      transaction_rid <- txn$rid
     } else {
-      transaction_range <- reticulate::tuple(NULL, transaction)
+      transaction_rid <- dataset$transaction_rid
     }
-    dataset <- pypalantir$datasets$dataset(
-      dataset,
-      branch = branch,
-      transaction_range = transaction_range,
-      ctx = get_context(),
-      create = create)
-  }
-  if (!inherits(dataset, "palantir.datasets.core.Dataset")) {
-    stop("dataset must be a Dataset or a character string")
-  }
-  dataset
-}
 
-#' @keywords internal
-get_file_in_txn_view_url <- function(dataset, logical_path) {
-  paste(
-    dataset$client$`_data_proxy_service`$`_uri`,
-    "dataproxy",
-    "datasets",
-    dataset$locator$rid,
-    "views",
-    dataset$locator$end_transaction_rid,
-    utils::URLencode(logical_path),
-    sep = "/")
+    upload_file_to_transaction <- function(file_path, file_name) {
+      datasets$write_file(dataset$rid, file_name, transaction_rid = transaction_rid,
+                          body = readBin(file_path, "raw", n = file.info(file_path)$size))
+    }
+    tryCatch(
+      {
+        lapply(files_to_upload, function(file_to_upload) {
+          upload_file_to_transaction(file_to_upload$file, file_to_upload$file_name)
+        })
+        if (is_transaction_managed) {
+          datasets$commit_transaction(dataset$rid, transaction_rid)
+        }
+      },
+      error = function(cond) {
+        if (is_transaction_managed) {
+          datasets$abort_transaction(dataset$rid, transaction_rid)
+          stop("An error occurred while uploading files, aborted the transaction: \n", cond)
+        }
+        warning("An error occurred while uploading files to the provided transaction.\n")
+      }
+    )
+  }
+  # Return a named list instead of an array of mappings
+  names(files_to_upload) <- lapply(files_to_upload, function(x) x$file)
+  return(lapply(files_to_upload, function(x) x$file_name))
 }

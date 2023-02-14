@@ -2,8 +2,8 @@
 ^\.Rproj\.user$
 ^changelog$
 ^coverage$
-^palantir.Rcheck$
-^palantir.*\.tar\.gz$
+^foundry.Rcheck$
+^foundry.*\.tar\.gz$
 ^\.lintr$
 ^\.github$
 ^\.bulldozer.yml$

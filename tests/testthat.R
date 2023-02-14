@@ -13,6 +13,6 @@
 #  limitations under the License.
 
 library(testthat)
-library(palantir)
+library(foundry)
 
-test_check("palantir")
+test_check("foundry")

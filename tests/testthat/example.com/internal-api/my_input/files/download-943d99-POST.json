@@ -1,0 +1,7 @@
+// Input: {"files":{"files":["file.csv","reports/file.txt"]}}
+{
+  "files": {
+    "file.csv": "/tmp/file.csv",
+    "reports/file.txt": "/tmp/reports/file.txt"
+  }
+}

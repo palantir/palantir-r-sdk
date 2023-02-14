@@ -1,0 +1,5 @@
+my_input:
+  # Short fake rids to avoid file paths over 100 bytes which breaks CRAN checks
+  rid: input
+my_output:
+  rid: output
