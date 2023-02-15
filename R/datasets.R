@@ -15,6 +15,7 @@
 #' @include config.R
 #' @include datasets_api_client.R
 #' @include schema.R
+#' @include utils.R
 NULL
 
 #' @keywords internal
@@ -22,6 +23,7 @@ FOUNDRY_DATA_SIDECAR_RUNTIME <- "foundry-data-sidecar"
 
 #' Reads a tabular Foundry dataset as data.frame or an Apache Arrow Table.
 #'
+#' @section Column types:
 #' Note that types may not match exactly the Foundry column types.
 #' See https://arrow.apache.org/docs/r/articles/arrow.html for details on type conversions
 #' from an arrow Table to a data.frame.
@@ -32,6 +34,12 @@ FOUNDRY_DATA_SIDECAR_RUNTIME <- "foundry-data-sidecar"
 #' @param format The output format, can be 'arrow' or 'data.frame'.
 #'
 #' @return A data.table or an Arrow Table
+#'
+#' @examples
+#' \dontrun{
+#' # Download a subset of a tabular Dataset
+#' df <- datasets.read_table("my_input", columns = c("columnA", "columnB"), row_limit = 1000)
+#' }
 #'
 #' @export
 datasets.read_table <- function(alias, columns = NULL, row_limit = NULL, format = "data.frame") { # nolint: object_name_linter
@@ -45,10 +53,7 @@ datasets.read_table <- function(alias, columns = NULL, row_limit = NULL, format 
                                                start_transaction_rid = dataset$start_transaction_rid,
                                                end_transaction_rid = dataset$end_transaction_rid,
                                                columns = columns, row_limit = row_limit)
-
-  stream <- arrow::BufferReader$create(httr::content(response, "raw"))
-  reader <- arrow::RecordBatchStreamReader$create(stream)
-  arrow_table <- reader$read_table()
+  arrow_table <- bin_to_arrow(httr::content(response, "raw"))
 
   if (format == "arrow") {
     return(arrow_table)
@@ -58,12 +63,21 @@ datasets.read_table <- function(alias, columns = NULL, row_limit = NULL, format 
 
 #' Writes a data.frame to a Foundry dataset.
 #'
+#' @section Column types:
 #' Note that types may not be exactly preserved and all types are not supported.
 #' See https://arrow.apache.org/docs/r/articles/arrow.html for details on type conversions
 #' from a data.frame to an arrow Table. Use arrow::Table$create to use more granular types.
 #'
+#' @section Row Names:
+#' Row names are silently removed.
+#'
 #' @param data A data.frame or an arrow Table.
 #' @param alias The alias representing the Dataset.
+#'
+#' @examples
+#' \dontrun{
+#' datasets.write_table(mtcars, "my_output")
+#' }
 #'
 #' @export
 datasets.write_table <- function(data, alias) { # nolint: object_name_linter
@@ -73,19 +87,24 @@ datasets.write_table <- function(data, alias) { # nolint: object_name_linter
   if (!inherits(data, "Table")) {
     stop("data must be a data.frame or an arrow Table")
   }
+
+  datasets <- get_datasets_client()
+  if (get_config("runtime", "") == FOUNDRY_DATA_SIDECAR_RUNTIME) {
+    return(datasets$foundry_data_sidecar_write_table(alias, body = arrow_to_bin(data)))
+  }
+
   dataset <- get_alias(alias)
 
   foundry_schema <- arrow_to_foundry_schema(data)
   local_path <- tempfile(fileext = ".parquet")
   arrow::write_parquet(data, local_path)
 
-  datasets <- get_datasets_client()
   datasets$write_file(
     dataset$rid,
     "dataframe.parquet",
     branch_id = dataset$branch,
     transaction_type = "SNAPSHOT",
-    body = readBin(local_path, "raw", n = file.info(local_path)$size))
+    body = file_to_bin(local_path))
   file.remove(local_path)
 
   datasets$put_schema(dataset$rid, branch_id = dataset$branch, foundry_schema = foundry_schema)
@@ -99,16 +118,16 @@ datasets.write_table <- function(data, alias) { # nolint: object_name_linter
 #'
 #' @return The lists of file properties.
 #'
-#' @export
-#'
 #' @examples
 #' \dontrun{
-#' # List all PDF files in dataset
+#' # List all PDF files in a Dataset
 #' all_files <- datasets.list_files("my_dataset", regex=".*\\.pdf")
 #'
 #' # Get all file names
 #' file_names <- sapply(all_files, function(x) x$path)
 #' }
+#'
+#' @export
 datasets.list_files <- function(alias, regex=".*") { # nolint: object_name_linter
   if (!missing(regex)) {
     # Match the regex against the full file path
@@ -149,19 +168,19 @@ datasets.list_files <- function(alias, regex=".*") { # nolint: object_name_linte
 #'
 #' @return A list mapping Foundry Dataset files to the local file paths where files were downloaded.
 #'
-#' @export
-#'
 #' @examples
 #' \dontrun{
-#' # Download a single file in dataset
+#' # Download a single file in a Dataset
 #' downloaded_file <- datasets.download_files("my_alias", c("dir/my_file.csv"))
 #' read.csv(downloaded_file$`dir/my_file.csv`)
 #'
-#' # Extract text from all PDF files in dataset
+#' # Extract text from all PDF files in a Dataset
 #' pdf_files <- datasets.list_files("my_alias", regex = ".*\\.pdf")
 #' downloaded_files <- datasets.download_files("my_alias", pdf_files)
 #' contents <- lapply(downloaded_files, pdftools::pdf_text)
 #' }
+#'
+#' @export
 datasets.download_files <- function(alias, files) { # nolint: object_name_linter
   dataset <- get_alias(alias)
 
@@ -205,6 +224,17 @@ datasets.download_files <- function(alias, files) { # nolint: object_name_linter
 #'
 #' @return A list mapping local file paths to the corresponding Foundry Dataset file.
 #'
+#' @examples
+#' \dontrun{
+#' # Upload RDS files to a Dataset
+#' local_dir <- file.path(tempdir(), "to_upload")
+#' dir.create(local_dir)
+#' saveRDS(iris, file.path(local_dir, "iris.rds"))
+#' saveRDS(Titanic, file.path(local_dir, "Titanic.rds"))
+#'
+#' datasets.upload_files(local_dir, "my_output")
+#' }
+#'
 #' @export
 datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
   dataset <- get_alias(alias)
@@ -239,7 +269,7 @@ datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
   if (get_config("runtime", "") == FOUNDRY_DATA_SIDECAR_RUNTIME) {
     upload_file_to_transaction <- function(file_path, file_name) {
       datasets$foundry_data_sidecar_write_file(alias, file_name,
-                                               body = readBin(file_path, "raw", n = file.info(file_path)$size))
+                                               body = file_to_bin(file_path))
     }
     lapply(files_to_upload, function(file_to_upload) {
       upload_file_to_transaction(file_to_upload$file, file_to_upload$file_name)
@@ -257,7 +287,7 @@ datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
 
     upload_file_to_transaction <- function(file_path, file_name) {
       datasets$write_file(dataset$rid, file_name, transaction_rid = transaction_rid,
-                          body = readBin(file_path, "raw", n = file.info(file_path)$size))
+                          body = file_to_bin(file_path))
     }
     tryCatch(
       {

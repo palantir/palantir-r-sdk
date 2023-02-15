@@ -199,6 +199,16 @@ DatasetsApiService <- R6::R6Class(
         body = body)
 
       self$api_client$stop_for_status(response)
+    },
+    foundry_data_sidecar_write_table = function(alias, body = NULL) {
+      url_path <- sprintf("/%s/writeTable", alias)
+
+      response <- self$api_client$call_api(
+        url = paste0(self$api_client$base_path, url_path),
+        method = "POST",
+        body = body)
+
+      self$api_client$stop_for_status(response)
     }
   ),
 )

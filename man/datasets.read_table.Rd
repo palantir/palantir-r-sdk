@@ -24,7 +24,19 @@ datasets.read_table(
 A data.table or an Arrow Table
 }
 \description{
+Reads a tabular Foundry dataset as data.frame or an Apache Arrow Table.
+}
+\section{Column types}{
+
 Note that types may not match exactly the Foundry column types.
 See https://arrow.apache.org/docs/r/articles/arrow.html for details on type conversions
 from an arrow Table to a data.frame.
+}
+
+\examples{
+\dontrun{
+# Download a subset of a tabular Dataset
+df <- datasets.read_table("my_input", columns = c("columnA", "columnB"), row_limit = 1000)
+}
+
 }
