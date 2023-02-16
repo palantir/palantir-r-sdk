@@ -85,6 +85,24 @@ should_resolve_aliases <- function() {
 }
 
 #' @keywords internal
+get_hostname <- function() {
+  hostname <- get_config("hostname")
+  if (grepl("/", hostname)) {
+    stop(sprintf("Hostname should not contain slashes, found `%s`", hostname))
+  }
+  hostname
+}
+
+#' @keywords internal
+get_scheme <- function() {
+  scheme <- get_config("scheme", "https")
+  if (!scheme %in% c("http", "https")) {
+    stop(sprintf("Only http and https schemes are supported, found `%s`", scheme))
+  }
+  scheme
+}
+
+#' @keywords internal
 get_alias <- function(alias) {
   if (!should_resolve_aliases()) {
     return(list(rid = alias))
