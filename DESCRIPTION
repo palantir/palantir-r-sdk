@@ -11,7 +11,7 @@ Authors@R:
              role = c("aut", "cph")))
 Maintainer: Alexandre Guinaudeau <aguinaudeau@palantir.com>
 Description: Interface to 'Palantir Foundry', including
-    reading and writing tabular or raw datasets, and more
+    reading and writing structured or unstructured datasets, and more
     <https://www.palantir.com/platforms/foundry/>.
 URL: https://github.com/palantir/palantir-r-sdk
 BugReports: https://github.com/palantir/palantir-r-sdk/issues
