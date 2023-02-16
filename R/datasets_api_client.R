@@ -215,12 +215,10 @@ DatasetsApiService <- R6::R6Class(
 
 #' @keywords internal
 get_datasets_client <- function() {
-  hostname <- get_config("hostname")
-  if (!grepl("^(\\w|\\.)+$", hostname)) {
-    stop(sprintf("Hostname should only have alphanumeric characters or dots, found `%s`", hostname))
-  }
+  scheme <- get_scheme()
+  hostname <- get_hostname()
   context_path <- get_config("datasets_context_path", "/api/v1/datasets")
-  base_path <- paste0("https://", hostname, context_path)
+  base_path <- paste0(scheme, "://", hostname, context_path)
   DatasetsApiService$new(
     base_path = base_path,
     auth_token = get_config("token"))
