@@ -32,6 +32,7 @@ arrow_to_bin <- function(arrow_table) {
   writer <- arrow::RecordBatchStreamWriter$create(sink, arrow_table$schema)
   writer$write_table(arrow_table)
   writer$close()
+  sink$close()
   file_to_bin(local_path)
 }
 
