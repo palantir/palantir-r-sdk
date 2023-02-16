@@ -7,7 +7,7 @@
 Install the library from Github:
 ```R
 install.packages("remotes")
-remotes::install_github("https://github.com/palantir/palantir-r-sdk", ref = "0.7.0")
+remotes::install_github("https://github.com/palantir/palantir-r-sdk", ref = "0.8.0")
 ```
 
 ### Configuration

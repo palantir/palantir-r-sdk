@@ -12,7 +12,23 @@ datasets.write_table(data, alias)
 \item{alias}{The alias representing the Dataset.}
 }
 \description{
+Writes a data.frame to a Foundry dataset.
+}
+\section{Column types}{
+
 Note that types may not be exactly preserved and all types are not supported.
 See https://arrow.apache.org/docs/r/articles/arrow.html for details on type conversions
 from a data.frame to an arrow Table. Use arrow::Table$create to use more granular types.
+}
+
+\section{Row Names}{
+
+Row names are silently removed.
+}
+
+\examples{
+\dontrun{
+datasets.write_table(mtcars, "my_output")
+}
+
 }

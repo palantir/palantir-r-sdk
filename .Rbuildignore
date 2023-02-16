@@ -10,3 +10,4 @@
 ^\.changelog.yml$
 ^\.excavator.yml$
 ^\.policy.yml$
+^LICENSE$

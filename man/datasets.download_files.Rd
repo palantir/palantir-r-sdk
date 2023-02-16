@@ -19,13 +19,14 @@ Download Foundry Files locally.
 }
 \examples{
 \dontrun{
-# Download a single file in dataset
+# Download a single file in a Dataset
 downloaded_file <- datasets.download_files("my_alias", c("dir/my_file.csv"))
 read.csv(downloaded_file$`dir/my_file.csv`)
 
-# Extract text from all PDF files in dataset
+# Extract text from all PDF files in a Dataset
 pdf_files <- datasets.list_files("my_alias", regex = ".*\\\\.pdf")
 downloaded_files <- datasets.download_files("my_alias", pdf_files)
 contents <- lapply(downloaded_files, pdftools::pdf_text)
 }
+
 }

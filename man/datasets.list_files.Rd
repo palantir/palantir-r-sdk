@@ -19,10 +19,11 @@ Lists the files stored in a Foundry Dataset.
 }
 \examples{
 \dontrun{
-# List all PDF files in dataset
+# List all PDF files in a Dataset
 all_files <- datasets.list_files("my_dataset", regex=".*\\\\.pdf")
 
 # Get all file names
 file_names <- sapply(all_files, function(x) x$path)
 }
+
 }

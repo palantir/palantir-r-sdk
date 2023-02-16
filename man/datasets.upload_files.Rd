@@ -18,3 +18,15 @@ A list mapping local file paths to the corresponding Foundry Dataset file.
 \description{
 Upload a local file or folder to a Foundry Dataset.
 }
+\examples{
+\dontrun{
+# Upload RDS files to a Dataset
+local_dir <- file.path(tempdir(), "to_upload")
+dir.create(local_dir)
+saveRDS(iris, file.path(local_dir, "iris.rds"))
+saveRDS(Titanic, file.path(local_dir, "Titanic.rds"))
+
+datasets.upload_files(local_dir, "my_output")
+}
+
+}

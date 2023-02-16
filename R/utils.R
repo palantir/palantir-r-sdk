@@ -19,3 +19,26 @@ unused <- function() {
   R6::R6Class
   jsonlite::toJSON
 }
+
+#' @keywords internal
+file_to_bin <- function(path) {
+  readBin(path, "raw", n = file.info(path)$size)
+}
+
+#' @keywords internal
+arrow_to_bin <- function(arrow_table) {
+  local_path <- tempfile(fileext = ".arrow")
+  sink <- arrow::FileOutputStream$create(local_path)
+  writer <- arrow::RecordBatchStreamWriter$create(sink, arrow_table$schema)
+  writer$write_table(arrow_table)
+  writer$close()
+  sink$close()
+  file_to_bin(local_path)
+}
+
+#' @keywords internal
+bin_to_arrow <- function(bytes) {
+  stream <- arrow::BufferReader$create(bytes)
+  reader <- arrow::RecordBatchStreamReader$create(stream)
+  reader$read_table()
+}
