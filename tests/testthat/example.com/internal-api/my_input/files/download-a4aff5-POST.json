@@ -1,4 +1,4 @@
-// Input: {"files":{"files":["file.csv","reports/file.txt"]}}
+// Input: {"files":["file.csv","reports/file.txt"]}
 {
   "files": {
     "file.csv": "/tmp/file.csv",

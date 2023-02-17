@@ -190,22 +190,28 @@ DatasetsApiService <- R6::R6Class(
       self$api_client$stop_for_status(response)
       httr::content(response, as = "parsed")
     },
-    foundry_data_sidecar_write_file = function(alias, file_path, body = NULL) {
+    foundry_data_sidecar_write_file = function(alias, file_path, upload_id, file_count, body = NULL) {
       url_path <- sprintf("/%s/files/%s/content", alias, utils::URLencode(file_path, reserved = TRUE))
+      header_params <- c("Content-Type" = "application/octet-stream",
+                         "X-Upload-Id" = upload_id,
+                         "X-File-Count" = as.character(file_count))
 
       response <- self$api_client$call_api(
         url = paste0(self$api_client$base_path, url_path),
         method = "PUT",
+        header_params = header_params,
         body = body)
 
       self$api_client$stop_for_status(response)
     },
     foundry_data_sidecar_write_table = function(alias, body = NULL) {
       url_path <- sprintf("/%s/writeTable", alias)
+      header_params <- c("Content-Type" = "application/octet-stream")
 
       response <- self$api_client$call_api(
         url = paste0(self$api_client$base_path, url_path),
         method = "POST",
+        header_params = header_params,
         body = body)
 
       self$api_client$stop_for_status(response)
