@@ -103,20 +103,18 @@ ApiClient  <- R6::R6Class( # nolint: cyclopcomp_linter
       if (method == "GET") {
         httr::GET(url, query = query_params, headers, http_timeout, httr::user_agent(self$`user_agent`), ...)
       } else if (method == "POST") {
-        httr::POST(url, query = query_params, headers, body = body, httr::content_type("application/json"),
-                   http_timeout, httr::user_agent(self$`user_agent`), ...)
-      } else if (method == "PUT") {
-        httr::PUT(url, query = query_params, headers, body = body, httr::content_type("application/json"),
-                  http_timeout, http_timeout, httr::user_agent(self$`user_agent`), ...)
-      } else if (method == "PATCH") {
-        httr::PATCH(url, query = query_params, headers, body = body, httr::content_type("application/json"),
-                    http_timeout, http_timeout, httr::user_agent(self$`user_agent`), ...)
-      } else if (method == "HEAD") {
-        httr::HEAD(url, query = query_params, headers, http_timeout, http_timeout,
+        httr::POST(url, query = query_params, headers, body = body, http_timeout,
                    httr::user_agent(self$`user_agent`), ...)
+      } else if (method == "PUT") {
+        httr::PUT(url, query = query_params, headers, body = body, http_timeout,
+                  httr::user_agent(self$`user_agent`), ...)
+      } else if (method == "PATCH") {
+        httr::PATCH(url, query = query_params, headers, body = body, http_timeout,
+                    httr::user_agent(self$`user_agent`), ...)
+      } else if (method == "HEAD") {
+        httr::HEAD(url, query = query_params, headers, http_timeout, httr::user_agent(self$`user_agent`), ...)
       } else if (method == "DELETE") {
-        httr::DELETE(url, query = query_params, headers, http_timeout, http_timeout,
-                     httr::user_agent(self$`user_agent`), ...)
+        httr::DELETE(url, query = query_params, headers, http_timeout, httr::user_agent(self$`user_agent`), ...)
       } else {
         err_msg <- "Http method must be `GET`, `HEAD`, `OPTIONS`, `POST`, `PATCH`, `PUT` or `DELETE`."
         stop(err_msg)
