@@ -21,6 +21,11 @@ unused <- function() {
 }
 
 #' @keywords internal
+get_upload_id <- function() {
+  paste0(sample(letters, 8, replace = TRUE), collapse = "")
+}
+
+#' @keywords internal
 file_to_bin <- function(path) {
   readBin(path, "raw", n = file.info(path)$size)
 }

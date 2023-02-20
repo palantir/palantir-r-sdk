@@ -190,7 +190,7 @@ datasets.download_files <- function(alias, files) { # nolint: object_name_linter
 
   datasets <- get_datasets_client()
   if (get_config("runtime", "") == FOUNDRY_DATA_SIDECAR_RUNTIME) {
-    return(datasets$foundry_data_sidecar_download_files(alias, list(files = files))$files)
+    return(datasets$foundry_data_sidecar_download_files(alias, files)$files)
   }
 
   target <- tempdir()
@@ -267,8 +267,11 @@ datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
   datasets <- get_datasets_client()
 
   if (get_config("runtime", "") == FOUNDRY_DATA_SIDECAR_RUNTIME) {
+    upload_id <- get_upload_id()
+    file_count <- length(files_to_upload)
     upload_file_to_transaction <- function(file_path, file_name) {
       datasets$foundry_data_sidecar_write_file(alias, file_name,
+                                               upload_id = upload_id, file_count = file_count,
                                                body = file_to_bin(file_path))
     }
     lapply(files_to_upload, function(file_to_upload) {

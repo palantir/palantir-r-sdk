@@ -28,11 +28,13 @@ DatasetsApiService <- R6::R6Class(
     },
     abort_transaction = function(dataset_rid, transaction_rid) {
       url_path <- sprintf("/%s/transactions/%s/abort", dataset_rid, transaction_rid)
+      header_params <- c("Content-Type" = "application/json")
       query_params <- list("preview" = TRUE)
 
       response <- self$api_client$call_api(
         url = paste0(self$api_client$base_path, url_path),
         method = "POST",
+        header_params = header_params,
         query_params = query_params)
 
       self$api_client$stop_for_status(response)
@@ -40,11 +42,13 @@ DatasetsApiService <- R6::R6Class(
     },
     commit_transaction = function(dataset_rid, transaction_rid) {
       url_path <- sprintf("/%s/transactions/%s/commit", dataset_rid, transaction_rid)
+      header_params <- c("Content-Type" = "application/json")
       query_params <- list("preview" = TRUE)
 
       response <- self$api_client$call_api(
         url = paste0(self$api_client$base_path, url_path),
         method = "POST",
+        header_params = header_params,
         query_params = query_params)
 
       self$api_client$stop_for_status(response)
@@ -52,6 +56,7 @@ DatasetsApiService <- R6::R6Class(
     },
     create_transaction = function(dataset_rid, branch_id = NULL, transaction_type = NULL) {
       url_path <- sprintf("/%s/transactions", dataset_rid)
+      header_params <- c("Content-Type" = "application/json")
       query_params <- list(
         "preview" = TRUE
       )
@@ -66,6 +71,7 @@ DatasetsApiService <- R6::R6Class(
       response <- self$api_client$call_api(
         url = paste0(self$api_client$base_path, url_path),
         method = "POST",
+        header_params = header_params,
         query_params = query_params,
         body = charToRaw(body))
 
@@ -75,6 +81,7 @@ DatasetsApiService <- R6::R6Class(
     read_table = function(dataset_rid, format, branch_id = NULL, start_transaction_rid = NULL,
                             end_transaction_rid = NULL, columns = NULL, row_limit = NULL) {
       url_path <- sprintf("/%s/readTable", dataset_rid)
+      header_params <- c("Content-Type" = "application/json")
       query_params <- list(
         "preview" = TRUE
       )
@@ -90,6 +97,7 @@ DatasetsApiService <- R6::R6Class(
       response <- self$api_client$call_api(
         url = paste0(self$api_client$base_path, url_path),
         method = "GET",
+        header_params = header_params,
         query_params = query_params)
 
       self$api_client$stop_for_status(response)
@@ -97,6 +105,7 @@ DatasetsApiService <- R6::R6Class(
     list_files = function(dataset_rid, branch_id = NULL, start_transaction_rid = NULL, end_transaction_rid = NULL,
                           page_size = NULL, page_token = NULL) {
       url_path <- sprintf("/%s/files", dataset_rid)
+      header_params <- c("Content-Type" = "application/json")
       query_params <- list(
         "preview" = TRUE
       )
@@ -109,6 +118,7 @@ DatasetsApiService <- R6::R6Class(
       response <- self$api_client$call_api(
         url = paste0(self$api_client$base_path, url_path),
         method = "GET",
+        header_params = header_params,
         query_params = query_params)
 
       self$api_client$stop_for_status(response)
@@ -116,6 +126,7 @@ DatasetsApiService <- R6::R6Class(
     },
     put_schema = function(dataset_rid, branch_id = NULL, foundry_schema = NULL) {
       url_path <- sprintf("/%s/schema", dataset_rid)
+      header_params <- c("Content-Type" = "application/json")
       query_params <- list(
         "preview" = TRUE
       )
@@ -124,6 +135,7 @@ DatasetsApiService <- R6::R6Class(
       response <- self$api_client$call_api(
         url = paste0(self$api_client$base_path, url_path),
         method = "PUT",
+        header_params = header_params,
         query_params = query_params,
         body = jsonlite::toJSON(foundry_schema, auto_unbox = TRUE))
 
@@ -164,6 +176,7 @@ DatasetsApiService <- R6::R6Class(
         start_transaction_rid = NULL,
         end_transaction_rid = NULL) {
       url_path <- sprintf("/%s/files/%s/content", dataset_rid, utils::URLencode(file_path, reserved = TRUE))
+      header_params <- c("Content-Type" = "application/json")
       query_params <- list(
         "preview" = TRUE
       )
@@ -174,6 +187,7 @@ DatasetsApiService <- R6::R6Class(
       response <- self$api_client$call_api(
         url = paste0(self$api_client$base_path, url_path),
         method = "GET",
+        header_params = header_params,
         query_params = query_params)
 
       self$api_client$stop_for_status(response)
@@ -181,31 +195,39 @@ DatasetsApiService <- R6::R6Class(
     # Foundry Data-Sidecar
     foundry_data_sidecar_download_files = function(alias, file_paths) {
       url_path <- sprintf("/%s/files/download", alias)
+      header_params <- c("Content-Type" = "application/json")
       body <- jsonlite::toJSON(list(files = file_paths))
       response <- self$api_client$call_api(
         url = paste0(self$api_client$base_path, url_path),
         method = "POST",
+        header_params = header_params,
         body = body)
 
       self$api_client$stop_for_status(response)
       httr::content(response, as = "parsed")
     },
-    foundry_data_sidecar_write_file = function(alias, file_path, body = NULL) {
+    foundry_data_sidecar_write_file = function(alias, file_path, upload_id, file_count, body = NULL) {
       url_path <- sprintf("/%s/files/%s/content", alias, utils::URLencode(file_path, reserved = TRUE))
+      header_params <- c("Content-Type" = "application/octet-stream",
+                         "X-Upload-Id" = upload_id,
+                         "X-File-Count" = as.character(file_count))
 
       response <- self$api_client$call_api(
         url = paste0(self$api_client$base_path, url_path),
         method = "PUT",
+        header_params = header_params,
         body = body)
 
       self$api_client$stop_for_status(response)
     },
     foundry_data_sidecar_write_table = function(alias, body = NULL) {
       url_path <- sprintf("/%s/writeTable", alias)
+      header_params <- c("Content-Type" = "application/octet-stream")
 
       response <- self$api_client$call_api(
         url = paste0(self$api_client$base_path, url_path),
         method = "POST",
+        header_params = header_params,
         body = body)
 
       self$api_client$stop_for_status(response)
