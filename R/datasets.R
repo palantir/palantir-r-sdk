@@ -89,7 +89,7 @@ datasets.write_table <- function(data, alias) { # nolint: object_name_linter
   }
 
   datasets <- get_datasets_client()
-  if (get_config("runtime", "") == FOUNDRY_DATA_SIDECAR_RUNTIME) {
+  if (get_runtime() == FOUNDRY_DATA_SIDECAR_RUNTIME) {
     return(datasets$foundry_data_sidecar_write_table(alias, body = arrow_to_bin(data)))
   }
 
@@ -189,7 +189,7 @@ datasets.download_files <- function(alias, files) { # nolint: object_name_linter
   }
 
   datasets <- get_datasets_client()
-  if (get_config("runtime", "") == FOUNDRY_DATA_SIDECAR_RUNTIME) {
+  if (get_runtime() == FOUNDRY_DATA_SIDECAR_RUNTIME) {
     return(datasets$foundry_data_sidecar_download_files(alias, files)$files)
   }
 
@@ -266,7 +266,7 @@ datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
 
   datasets <- get_datasets_client()
 
-  if (get_config("runtime", "") == FOUNDRY_DATA_SIDECAR_RUNTIME) {
+  if (get_runtime() == FOUNDRY_DATA_SIDECAR_RUNTIME) {
     upload_id <- get_upload_id()
     file_count <- length(files_to_upload)
     upload_file_to_transaction <- function(file_path, file_name) {
