@@ -81,7 +81,7 @@ load_yaml_config_file <- function(filename) {
 
 #' @keywords internal
 should_resolve_aliases <- function() {
-  get_config("resolve_aliases", "true") == "true"
+  tolower(get_config("resolve_aliases", "true")) == "true"
 }
 
 #' @keywords internal
@@ -94,12 +94,8 @@ get_hostname <- function() {
 }
 
 #' @keywords internal
-get_scheme <- function() {
-  scheme <- get_config("scheme", "https")
-  if (!scheme %in% c("http", "https")) {
-    stop(sprintf("Only http and https schemes are supported, found `%s`", scheme))
-  }
-  scheme
+get_runtime <- function() {
+  tolower(get_config("runtime", "default"))
 }
 
 #' @keywords internal

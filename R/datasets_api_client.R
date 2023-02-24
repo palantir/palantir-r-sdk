@@ -112,8 +112,8 @@ DatasetsApiService <- R6::R6Class(
       query_params["branchId"] <- branch_id
       query_params["startTransactionRid"] <- start_transaction_rid
       query_params["endTransactionRid"] <- end_transaction_rid
-      query_params["PageSize"] <- page_size
-      query_params["PageToken"] <- page_token
+      query_params["pageSize"] <- page_size
+      query_params["pageToken"] <- page_token
 
       response <- self$api_client$call_api(
         url = paste0(self$api_client$base_path, url_path),
@@ -237,10 +237,9 @@ DatasetsApiService <- R6::R6Class(
 
 #' @keywords internal
 get_datasets_client <- function() {
-  scheme <- get_scheme()
   hostname <- get_hostname()
   context_path <- get_config("datasets_context_path", "/api/v1/datasets")
-  base_path <- paste0(scheme, "://", hostname, context_path)
+  base_path <- paste0("https://", hostname, context_path)
   DatasetsApiService$new(
     base_path = base_path,
     auth_token = get_config("token"))
