@@ -49,7 +49,7 @@ datasets.read_table <- function(alias, columns = NULL, row_limit = NULL, format 
   dataset <- get_alias(alias)
 
   response <- get_datasets_client()$read_table(dataset_rid = dataset$rid, format = "ARROW",
-                                               branch_id = dataset$branch_id,
+                                               branch_id = dataset$branch,
                                                start_transaction_rid = dataset$start_transaction_rid,
                                                end_transaction_rid = dataset$end_transaction_rid,
                                                columns = columns, row_limit = row_limit)
@@ -290,7 +290,7 @@ datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
     is_transaction_managed <- is.null(dataset$transaction_rid)
 
     if (is_transaction_managed) {
-      txn <- datasets$create_transaction(dataset$rid, branch_id = dataset$branch_id,
+      txn <- datasets$create_transaction(dataset$rid, branch_id = dataset$branch,
                                          transaction_type = dataset$transaction_type)
       transaction_rid <- txn$rid
     } else {
