@@ -89,7 +89,7 @@ datasets.write_table <- function(data, alias) { # nolint: object_name_linter
   }
 
   datasets <- get_datasets_client()
-  if (get_config("runtime", "") == FOUNDRY_DATA_SIDECAR_RUNTIME) {
+  if (get_runtime() == FOUNDRY_DATA_SIDECAR_RUNTIME) {
     return(datasets$foundry_data_sidecar_write_table(alias, body = arrow_to_bin(data)))
   }
 
@@ -140,7 +140,7 @@ datasets.list_files <- function(alias, regex=".*") { # nolint: object_name_linte
                                start_transaction_rid = dataset$start_transaction_rid,
                                end_transaction_rid = dataset$end_transaction_rid)
 
-  page <- files$data
+  page <- get_files_page(files)
   if (!missing(regex)) {
     page <- page[sapply(page, function(x) grepl(regex, x$path))]
   }
@@ -152,13 +152,22 @@ datasets.list_files <- function(alias, regex=".*") { # nolint: object_name_linte
     files <- datasets$list_files(dataset$rid, branch_id = dataset$branch,
                                  start_transaction_rid = dataset$start_transaction_rid,
                                  end_transaction_rid = dataset$end_transaction_rid, page_token = files$nextPageToken)
-    page <- files$data
+    page <- get_files_page(files)
     if (!missing(regex)) {
       page <- page[sapply(page, function(x) grepl(regex, x$path))]
     }
     data[[length(data) + 1]] <- page
   }
-  return(unlist(files$data, recursive = FALSE))
+  return(unlist(data, recursive = FALSE))
+}
+
+#' @keywords internal
+get_files_page <- function(response) {
+  if (get_runtime() == FOUNDRY_DATA_SIDECAR_RUNTIME) {
+    return(response$files)
+  } else {
+    return(response$data)
+  }
 }
 
 #' Download Foundry Files locally.
@@ -189,7 +198,7 @@ datasets.download_files <- function(alias, files) { # nolint: object_name_linter
   }
 
   datasets <- get_datasets_client()
-  if (get_config("runtime", "") == FOUNDRY_DATA_SIDECAR_RUNTIME) {
+  if (get_runtime() == FOUNDRY_DATA_SIDECAR_RUNTIME) {
     return(datasets$foundry_data_sidecar_download_files(alias, files)$files)
   }
 
@@ -266,7 +275,7 @@ datasets.upload_files <- function(files, alias) { # nolint: object_name_linter
 
   datasets <- get_datasets_client()
 
-  if (get_config("runtime", "") == FOUNDRY_DATA_SIDECAR_RUNTIME) {
+  if (get_runtime() == FOUNDRY_DATA_SIDECAR_RUNTIME) {
     upload_id <- get_upload_id()
     file_count <- length(files_to_upload)
     upload_file_to_transaction <- function(file_path, file_name) {

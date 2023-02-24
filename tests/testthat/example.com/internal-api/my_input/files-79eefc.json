@@ -1,5 +1,5 @@
 {
-    "data": [
+    "files": [
         {
             "path": "internal/file.txt",
             "transactionRid": "ri.foundry.main.transaction.00000000-0000-0000-0000-000000000002",
