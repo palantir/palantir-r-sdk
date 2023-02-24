@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Match python SDK conventions
+  links:
+  - https://github.com/palantir/palantir-r-sdk/pull/22
