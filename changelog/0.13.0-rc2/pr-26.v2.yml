@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Support HTTP scheme for localhost communication
+  links:
+  - https://github.com/palantir/palantir-r-sdk/pull/26
