@@ -85,6 +85,15 @@ should_resolve_aliases <- function() {
 }
 
 #' @keywords internal
+get_scheme <- function() {
+  scheme <- tolower(get_config("scheme", "https"))
+  if (!scheme %in% c("http", "https")) {
+    stop(sprintf("Only http and https schemes are supported, found `%s`", scheme))
+  }
+  scheme
+}
+
+#' @keywords internal
 get_hostname <- function() {
   hostname <- get_config("hostname")
   if (grepl("/", hostname)) {
