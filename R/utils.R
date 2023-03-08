@@ -47,3 +47,8 @@ bin_to_arrow <- function(bytes) {
   reader <- arrow::RecordBatchStreamReader$create(stream)
   reader$read_table()
 }
+
+#' @keywords internal
+copy_dataframe <- function(df) {
+  df[, , drop = FALSE]
+}
