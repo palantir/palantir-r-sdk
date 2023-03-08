@@ -58,7 +58,7 @@ datasets.read_table <- function(alias, columns = NULL, row_limit = NULL, format 
   if (format == "arrow") {
     return(arrow_table)
   }
-  arrow_table$to_data_frame()
+  copy_dataframe(arrow_table$to_data_frame())
 }
 
 #' Writes a data.frame to a Foundry dataset.

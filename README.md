@@ -1,13 +1,19 @@
 # Palantir R SDK
 [![License](https://img.shields.io/badge/License-Apache%202.0-lightgrey.svg)](https://opensource.org/license/Apache-2-0/)
+[![CRAN status](https://www.r-pkg.org/badges/version/foundry)](https://CRAN.R-project.org/package=foundry)
 [![Autorelease](https://img.shields.io/badge/Perform%20an-Autorelease-success.svg)](https://autorelease.general.dmz.palantir.tech/palantir/palantir-r-sdk)
 
 ## Setup
 
-Install the library from Github:
+Install the library from CRAN:
+```R
+install.packages("foundry")
+```
+
+Alternatively, install the latest development version from Github:
 ```R
 install.packages("remotes")
-remotes::install_github("https://github.com/palantir/palantir-r-sdk", ref = "0.12.0")
+remotes::install_github("https://github.com/palantir/palantir-r-sdk", ref = "0.13.0-rc1")
 ```
 
 ### Configuration
