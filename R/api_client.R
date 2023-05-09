@@ -30,8 +30,8 @@ ApiClient  <- R6::R6Class( # nolint: cyclopcomp_linter
     default_headers = NULL,
     # Access token
     access_token = NULL,
-    # Time Out (seconds). By default, match CURL timeout.
-    timeout = as.numeric(get_config("requests.timeout", 150)),
+    # Time Out (seconds)
+    timeout = NULL,
     # Vector of status codes to retry. By default, match java remoting
     # https://github.com/palantir/conjure-java-runtime/tree/3.12.0#quality-of-service-retry-failover-throttling
     retry_status_codes = c(308, 429, 503),
@@ -42,6 +42,8 @@ ApiClient  <- R6::R6Class( # nolint: cyclopcomp_linter
       self$base_path <- base_path
       self$access_token <- access_token
       self$default_headers["Authorization"] <- sprintf("Bearer %s", access_token)
+      # By default, match CURL timeout
+      self$timeout <- as.numeric(get_config("requests.timeout", 150))
     },
 
     stop_for_status = function(resp) {
