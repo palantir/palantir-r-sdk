@@ -94,7 +94,8 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: lintr
+          extra-packages: any::lintr, local::.
+          needs: lint
 
       - name: Lint
         run: lintr::lint_package()
