@@ -1,7 +1,7 @@
 Type: Package
 Package: foundry
 Title: 'Palantir Foundry' Software Development Kit
-Version: 0.13.0-2
+Version: 0.13.0-3
 Authors@R:
     c(person(given = "Alexandre",
              family = "Guinaudeau",

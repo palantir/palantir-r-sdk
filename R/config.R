@@ -13,7 +13,9 @@
 #  limitations under the License.
 
 #' @keywords internal
-DEFAULT_CONFIG_DIR <- file.path(path.expand("~"), ".foundry")
+get_default_config_dir <- function() {
+  file.path(path.expand("~"), ".foundry")
+}
 
 #' @keywords internal
 ALIASES_FILE <- "aliases.yml"
@@ -67,7 +69,7 @@ get_config_from_yaml_file <- function(name, filename, default = NULL) {
 
 #' @keywords internal
 get_yaml_config_file <- function(filename) {
-  file.path(get_config("config_dir", DEFAULT_CONFIG_DIR), filename)
+  file.path(get_config("config_dir", get_default_config_dir()), filename)
 }
 
 #' @keywords internal
