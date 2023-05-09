@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: Load configurations at runtime
+  links:
+  - https://github.com/palantir/palantir-r-sdk/pull/31
