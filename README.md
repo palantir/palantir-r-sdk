@@ -13,7 +13,7 @@ install.packages("foundry")
 Alternatively, install the latest development version from Github:
 ```R
 install.packages("remotes")
-remotes::install_github("https://github.com/palantir/palantir-r-sdk", ref = "0.13.0-rc3")
+remotes::install_github("https://github.com/palantir/palantir-r-sdk", ref = "0.13.0")
 ```
 
 ### Configuration
